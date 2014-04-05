@@ -8,6 +8,15 @@
     "url": "git://github.com/tandrewnichols/tinder.git"
   },
   "homepage": "https://github.com/tandrewnichols/tinder",
+  "bugs": {
+    "url": "https://github.com/tandrewnichols/tinder/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/tandrewnichols/tinder/blob/master/LICENSE"
+    }
+  ],
   "scripts": {
     "test": "mocha test",
     "watch": "mocha test -w -R min --suppress-stack"
@@ -29,5 +38,9 @@
     "new",
     "make"
   ],
-  "main": "./lib/tinder"
+  "main": "./tinder",
+  "preferGlobal": true,
+  "bin": {
+    "tinder": "./tinder.js"
+  }
 }
