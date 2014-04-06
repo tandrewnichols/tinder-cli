@@ -23,7 +23,11 @@
   },
   "dependencies": {
     "commander": "2.2.x",
-    "git-wrapper2": "0.2.5"
+    "git-wrapper2": "0.2.x",
+    "config-extend": "0.0.x",
+    "underscore": "^1.6.0",
+    "async": "^0.6.2",
+    "varity": "^1.0.1"
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
