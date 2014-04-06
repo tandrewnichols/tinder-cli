@@ -17,8 +17,7 @@ program
   .option('-r, --dependencies [module]', 'dependencies to be added to package.json', coercion.list, [])
   .option('-v, --dev-dependencies [module]','devDependencies to be added to package.json', coercion.list, [])
   .option('-n, --no-extend', 'replace dependencies rather than extending')
-  .option('-m, --main', 'location of main file')
-  .parse(process.argv);
+  .option('-m, --main', 'location of main file');
 
 program.name = 'tinder';
 
@@ -28,6 +27,8 @@ program
   .action(new App(program).init);
 
 program
-  .command('module <name>')
+  .command('module <module>')
   .description('initialize a new module')
   .action(new Module(program).init);
+
+program.parse(process.argv);
