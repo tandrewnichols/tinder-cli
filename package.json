@@ -25,7 +25,7 @@
     "commander": "2.2.x",
     "git-wrapper2": "0.2.x",
     "config-extend": "0.0.x",
-    "varity": "^1.0.1"
+    "varity": "1.0.x"
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
