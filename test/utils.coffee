@@ -205,8 +205,30 @@ describe 'utils', ->
   describe '.addDependencies', ->
     Given -> @child_process.exec = sinon.stub()
     context 'regular deps', ->
-      Given -> @child_process.exec.withArgs('npm install foo bar baz --save --save-exact', sinon.match.func).callsArgWith(1, null, 'info', null)
+      Given -> @child_process.exec.withArgs('npm install foo bar baz --save --save-exact', sinon.match.func).callsArgWith(1, null, 'fake npm output', null)
       Given -> @deps = ['foo', 'bar', 'baz']
       Given -> @done = sinon.spy()
       When -> @subject.addDependencies @deps, @done
       Then -> expect(@done).to.have.been.called
+
+    context 'dev deps', ->
+      Given -> @child_process.exec.withArgs('npm install foo bar baz --save-dev --save-exact', sinon.match.func).callsArgWith(1, null, 'fake npm output', null)
+      Given -> @deps = ['foo', 'bar', 'baz']
+      Given -> @done = sinon.spy()
+      When -> @subject.addDependencies @deps, true, @done
+      Then -> expect(@done).to.have.been.called
+
+    context 'error', ->
+      Given -> @child_process.exec.withArgs('npm install foo bar baz --save-dev --save-exact', sinon.match.func).callsArgWith(1, 'error', null, null)
+      Given -> @deps = ['foo', 'bar', 'baz']
+      Given -> @done = sinon.spy()
+      When -> @subject.addDependencies @deps, true, @done
+      Then -> expect(@done).to.have.been.called
+
+    context 'stderr', ->
+      Given -> @child_process.exec.withArgs('npm install foo bar baz --save-dev --save-exact', sinon.match.func).callsArgWith(1, null, null, 'fake stderr')
+      Given -> @deps = ['foo', 'bar', 'baz']
+      Given -> @done = sinon.spy()
+      When -> @subject.addDependencies @deps, true, @done
+      Then -> expect(@done).to.have.been.called
+      
