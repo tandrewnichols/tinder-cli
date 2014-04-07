@@ -203,9 +203,10 @@ describe 'utils', ->
     Then -> expect(@done).to.have.been.called
 
   describe '.addDependencies', ->
-    Given -> @child_process.spawn = sinon.stub().withArgs('npm install foo bar baz --save')
+    Given -> @child_process.exec = sinon.stub()
     context 'regular deps', ->
+      Given -> @child_process.exec.withArgs('npm install foo bar baz --save --save-exact', sinon.match.func).callsArgWith(1, null, 'info', null)
       Given -> @deps = ['foo', 'bar', 'baz']
       Given -> @done = sinon.spy()
       When -> @subject.addDependencies @deps, @done
-      
+      Then -> expect(@done).to.have.been.called

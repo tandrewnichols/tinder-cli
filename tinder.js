@@ -17,7 +17,8 @@ program
   .option('-r, --dependencies [module]', 'dependencies to be added to package.json', coercion.list, [])
   .option('-v, --dev-dependencies [module]','devDependencies to be added to package.json', coercion.list, [])
   .option('-n, --no-extend', 'replace dependencies rather than extending')
-  .option('-m, --main', 'location of main file');
+  .option('-m, --main', 'location of main file'),
+  .option('--no-clean', 'do not rm -rf on a faiure');
 
 program.name = 'tinder';
 
