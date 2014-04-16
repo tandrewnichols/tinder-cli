@@ -1,35 +1,30 @@
 #!/usr/bin/env node
 
 var program = require('commander');
-var Module = require('./lib/module');
-var App = require('./lib/app');
+var cli = require('./lib/cli');
 var coercion = require('./lib/coercion');
 
 program
   .version(require('./package').version)
   .usage('<command> <name> [options]')
-  .option('-o, --opts-file', 'path to tinder.opts', '~/tinder.json')
-  .option('-d, --description', 'description of the project')
-  .option('-a, --author', 'author name')
+  .option('-b, --base-dir [dir]', 'OS path or git url to base project', '~/tinder')
+  .option('-d, --description [description]', 'description of the project')
+  .option('-a, --author [name]', 'author name')
   .option('-e, --email', 'email of author')
   .option('-g, --github-account', 'github account name')
   .option('-k, --keywords [keyword]', 'keywords for package.json', coercion.list, [])
   .option('-r, --dependencies [module]', 'dependencies to be added to package.json', coercion.list, [])
-  .option('-v, --dev-dependencies [module]','devDependencies to be added to package.json', coercion.list, [])
+  .option('-t, --dev-dependencies [module]','devDependencies to be added to package.json', coercion.list, [])
   .option('-n, --no-extend', 'replace dependencies rather than extending')
-  .option('-m, --main', 'location of main file'),
+  .option('-v, --vars', 'Additional variables for template interpolation', coercion.obj, {})
   .option('--no-clean', 'do not rm -rf on a faiure');
 
 program.name = 'tinder';
 
 program
-  .command('app <name>')
+  .command('new <name>')
+  .alias('mk')
   .description('initialize a new express app')
-  .action(new App(program).init);
-
-program
-  .command('module <module>')
-  .description('initialize a new module')
-  .action(new Module(program).init);
+  .action(cli.create);
 
 program.parse(process.argv);

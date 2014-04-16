@@ -22,7 +22,7 @@
     "watch": "mocha test -w -R min --suppress-stack"
   },
   "dependencies": {
-    "commander": "2.2.x",
+    "commander": "git://github.com/tandrewnichols/commander.js.git#add-alias",
     "git-wrapper2": "0.2.x",
     "config-extend": "0.0.x",
     "varity": "1.0.x"
