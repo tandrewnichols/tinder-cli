@@ -55,5 +55,25 @@ describe 'cli', ->
       When -> @subject.cleanup 'I have measured out my life with coffee spoons', @options
       Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Not removing ./foo'.red
 
+  describe '.exit', ->
+    afterEach ->
+      console.log.restore()
+      process.exit.restore()
+    Given -> sinon.stub console, 'log'
+    Given -> sinon.stub process, 'exit'
+    context 'with code and message', ->
+      When -> @subject.exit 6, 'something went horribly awry'
+      Then -> expect(console.log).to.have.been.calledWith 'something went horribly awry'
+      And -> expect(process.exit).to.have.been.calledWith 6
+
+    context 'no code', ->
+      When -> @subject.exit 6
+      Then -> expect(process.exit).to.have.been.calledWith()
+
   describe '.create', ->
+    Given -> @utils.getGithubUrl = sinon.stub().withArgs('tinder-box', sinon.match.func).callsArgWith 1, null, 'clone url'
+    Given -> @options = {}
+    When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
+    Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
+    And -> expect(@options.cloneUrl).to.equal 'clone url'
 
