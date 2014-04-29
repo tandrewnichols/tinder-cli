@@ -36,7 +36,7 @@ describe 'utils', ->
     afterEach ->
       process.chdir.restore()
     Given -> @cb = sinon.spy()
-    Given -> sinon.spy process, 'chdir'
+    Given -> sinon.stub process, 'chdir'
     Given -> @cp.exec = sinon.stub().withArgs 'git clone git@github.com:foo/bar.git pizza', sinon.match.func
 
     context 'error', ->
@@ -45,4 +45,4 @@ describe 'utils', ->
         cloneUrl: 'git@github.com:foo/bar.git'
         repoName: 'pizza'
       , @cb
-      Then -> expect(@cb).to.have.been.calledWith 'error', null
+      Then -> expect(@cb).to.have.been.calledWith 'error'
