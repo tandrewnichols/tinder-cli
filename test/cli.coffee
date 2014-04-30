@@ -72,6 +72,7 @@ describe 'cli', ->
 
   describe '.create', ->
     Given -> @utils.getGithubUrl = sinon.stub().withArgs('tinder-box', sinon.match.func).callsArgWith 1, null, 'clone url'
+    Given -> @utils.clone = sinon.stub().withArgs(@options, sinon.match.func).callsArgWith 1, null
     Given -> @options = {}
     When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
     Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
