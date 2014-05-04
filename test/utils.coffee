@@ -46,3 +46,5 @@ describe 'utils', ->
         repoName: 'pizza'
       , @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
+
+  describe '.findInterpolationFiles', ->
