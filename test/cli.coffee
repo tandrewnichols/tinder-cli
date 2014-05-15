@@ -3,12 +3,14 @@ colors = require 'colors'
 describe 'cli', ->
   Given -> @utils = {}
   Given -> @cp = {}
+  Given -> @async = {}
   Given -> @subject = sandbox '../lib/cli',
     child_process: @cp
     './utils': @utils
+    async: @async
 
   describe '.cleanup', ->
-    Given -> sinon.stub console, 'log'
+    Given -> sinon.spy console, 'log'
     afterEach ->
       console.log.restore()
     context 'clean', ->
@@ -59,7 +61,7 @@ describe 'cli', ->
     afterEach ->
       console.log.restore()
       process.exit.restore()
-    Given -> sinon.stub console, 'log'
+    Given -> sinon.spy console, 'log'
     Given -> sinon.stub process, 'exit'
     context 'with code and message', ->
       When -> @subject.exit 6, 'something went horribly awry'
@@ -71,11 +73,31 @@ describe 'cli', ->
       Then -> expect(process.exit).to.have.been.calledWith()
 
   describe '.create', ->
-    Given -> @utils.getGithubUrl = sinon.stub().withArgs('tinder-box', sinon.match.func).callsArgWith 1, null, 'clone url'
-    Given -> @utils.clone = sinon.stub().withArgs(@options, sinon.match.func).callsArgWith 1, null
-    Given -> @utils.findInterpolationFiles = sinon.stub().withArgs(@options, sinon.match.func).callsArgWith 1, null, ['foo', 'bar']
+    afterEach ->
+      @subject.cleanup.restore()
+      @subject.exit.restore()
+    Given -> sinon.stub @subject, 'cleanup'
+    Given -> sinon.stub @subject, 'exit'
     Given -> @options = {}
-    When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
-    Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
-    And -> expect(@options.cloneUrl).to.equal 'clone url'
+    Given -> @getGithubUrl = sinon.spy()
+    Given -> @clone = sinon.spy()
+    Given -> @findInterpolation = sinon.spy()
+    Given -> @replaceInterpolation = sinon.spy()
+    Given -> @utils.getGithubUrl = sinon.stub().withArgs(@options).returns @getGithubUrl
+    Given -> @utils.clone = sinon.stub().withArgs(@options).returns @clone
+    Given -> @utils.findInterpolation = sinon.stub().withArgs(@options).returns @findInterpolation
+    Given -> @utils.replaceInterpolation = sinon.stub().withArgs(@options).returns @replaceInterpolation
 
+    context 'no error', ->
+      Given -> @async.waterfall = sinon.stub().withArgs([ @getGithubUrl, @clone, @findInterpolation, @replaceInterpolation ], sinon.match.func).callsArgWith 1, null
+      When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
+      Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
+      And -> expect(@options.template).to.equal 'tinder-box'
+      And -> expect(@subject.exit).to.have.been.called
+
+    context 'no error', ->
+      Given -> @async.waterfall = sinon.stub().withArgs([ @getGithubUrl, @clone, @findInterpolation, @replaceInterpolation ], sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
+      When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
+      Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
+      And -> expect(@options.template).to.equal 'tinder-box'
+      And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options

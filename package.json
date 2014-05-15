@@ -26,7 +26,8 @@
     "git-wrapper2": "0.2.x",
     "colors": "0.6.x",
     "request": "2.34.x",
-    "varity": "1.0.x"
+    "varity": "1.0.x",
+    "async": "0.8.0"
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
