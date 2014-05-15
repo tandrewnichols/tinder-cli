@@ -19,7 +19,9 @@ program
   .option('-k, --keywords <keyword>', 'keywords for package.json', coercion.list, [])
   .option('-r, --remove-deps <module>', 'Dependencies in base project not to include', coercion.list, [])
   .option('-v, --vars <key>:<value>', 'Additional variables for template interpolation', coercion.obj, {})
-  .option('-i, --interpolation <pattern>', 'Interpolation pattern', '<\\{[^}]\\}>')
+  .option('-i, --interpolate <pattern>', 'Underscore interpolation pattern')
+  .option('-e, --evaluate <pattern>', 'Underscore evaluate pattern')
+  .option('--escape <pattern>', 'Underscore escape pattern')
   .option('--no-clean', 'do not rm -rf on a faiure')
   .action(cli.create);
 

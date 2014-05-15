@@ -114,6 +114,33 @@ describe 'utils', ->
       And -> @waterfallFn ['./foo', './bar'], @next
       Then -> expect(@next).to.have.been.calledWith()
 
+  describe '.read', ->
+    Given -> @cb = sinon.spy()
+    Given -> @fs.readFile = sinon.stub().withArgs('./foo', sinon.match.func)
+    context 'error', ->
+      Given -> @fs.readFile.callsArgWith 1, 'error', null
+      When -> @subject.read './foo', @cb
+      Then -> expect(@cb).to.have.been.calledWith 'error'
+
+    context 'no error', ->
+      Given -> @fs.readFile.callsArgWith 1, null, 'data'
+      When -> @subject.read './foo', @cb
+      Then -> expect(@cb).to.have.been.calledWith null, 'data'
+
+  describe '.replace', ->
+    Given -> @cb = sinon.spy()
+    Given -> @options =
+      vars:
+        repoName: 'xanadu'
+        data: 'words'
+        replacement: 'monkey'
+
+    context 'standard interpolation', ->
+      When -> @waterfallFn = @subject.replace @options
+      And -> @waterfallFn 'some <%= data %> we found in <%= repoName %>', @cb
+      Then -> expect(@cb).to.have.been.calledWith null, 'some words we found in xanadu'
+
+
 
 
 
