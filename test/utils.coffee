@@ -148,7 +148,7 @@ describe 'utils', ->
     And -> console.log @cb.getCall(0).args
     Then -> expect(@cb).to.have.been.calledWith null, 'some words we found in xanadu'
 
-
+  describe '.write', ->
 
 
 
