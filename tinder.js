@@ -3,7 +3,8 @@
 var program = require('commander'),
     cli = require('./lib/cli'),
     colors = require('colors'),
-    coercion = require('./lib/coercion');
+    coercion = require('./lib/coercion'),
+    _ = require('underscore');
 
 program
   .version(require('./package').version)
@@ -19,9 +20,8 @@ program
   .option('-k, --keywords <keyword>', 'keywords for package.json', coercion.list, [])
   .option('-r, --remove-deps <module>', 'Dependencies in base project not to include', coercion.list, [])
   .option('-v, --vars <key>:<value>', 'Additional variables for template interpolation', coercion.obj, {})
-  .option('-i, --interpolate <pattern>', 'Underscore interpolation pattern')
-  .option('-e, --evaluate <pattern>', 'Underscore evaluate pattern')
-  .option('--escape <pattern>', 'Underscore escape pattern')
+  .option('-e, --evaluate <pattern>', 'Underscore evaluate pattern', _.templateSettings.interpolate.source)
+  .option('--escape <pattern>', 'Underscore escape pattern', _.templateSettings.interpolate.source)
   .option('--no-clean', 'do not rm -rf on a faiure')
   .action(cli.create);
 
