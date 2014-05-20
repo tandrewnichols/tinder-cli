@@ -79,25 +79,33 @@ describe 'cli', ->
     Given -> sinon.stub @subject, 'cleanup'
     Given -> sinon.stub @subject, 'exit'
     Given -> @options = {}
-    Given -> @getGithubUrl = sinon.spy()
-    Given -> @clone = sinon.spy()
-    Given -> @findInterpolation = sinon.spy()
-    Given -> @replaceInterpolation = sinon.spy()
-    Given -> @utils.getGithubUrl = sinon.stub().withArgs(@options).returns @getGithubUrl
-    Given -> @utils.clone = sinon.stub().withArgs(@options).returns @clone
-    Given -> @utils.findInterpolation = sinon.stub().withArgs(@options).returns @findInterpolation
-    Given -> @utils.replaceInterpolation = sinon.stub().withArgs(@options).returns @replaceInterpolation
+    Given -> @utils.getGithubUrl = sinon.stub()
+    Given -> @utils.getGithubUrl.withArgs(@options).returns 'getGithubUrl'
+    Given -> @utils.clone = sinon.stub()
+    Given -> @utils.clone.withArgs(@options).returns 'clone'
+    Given -> @utils.findInterpolation = sinon.stub()
+    Given -> @utils.findInterpolation.withArgs(@options).returns 'findInterpolation'
+    Given -> @utils.replaceInterpolation = sinon.stub()
+    Given -> @utils.replaceInterpolation.withArgs(@options).returns 'replaceInterpolation'
+    Given -> @utils.createRepo = sinon.stub()
+    Given -> @utils.createRepo.withArgs(@options).returns 'createRepo'
+    Given -> @async.waterfall = sinon.stub()
 
     context 'no error', ->
-      Given -> @async.waterfall = sinon.stub().withArgs([ @getGithubUrl, @clone, @findInterpolation, @replaceInterpolation ], sinon.match.func).callsArgWith 1, null
+      Given -> @async.waterfall.withArgs([ 'getGithubUrl', 'clone', 'findInterpolation', 'replaceInterpolation', 'createRepo' ], sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
+      And -> expect(@options.vars).to.deep.equal repoName: 'horace-the-horrible'
       And -> expect(@subject.exit).to.have.been.called
 
-    context 'no error', ->
-      Given -> @async.waterfall = sinon.stub().withArgs([ @getGithubUrl, @clone, @findInterpolation, @replaceInterpolation ], sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
+    context 'error', ->
+      Given -> @options.vars = type: 'foo'
+      Given -> @async.waterfall.withArgs([ 'getGithubUrl', 'clone', 'findInterpolation', 'replaceInterpolation', 'createRepo' ], sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
+      And -> expect(@options.vars).to.deep.equal
+        repoName: 'horace-the-horrible'
+        type: 'foo'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options

@@ -100,6 +100,16 @@ describe 'utils', ->
     Then -> expect(@cb).to.have.been.calledWith null, ['foo', 'bar', 'baz']
 
   describe '.replaceInterpolation', ->
+    afterEach ->
+      @subject.read.restore()
+      @subject.replace.restore()
+      @subject.write.restore()
+    Given -> @read = sinon.stub @subject, 'read'
+    Given -> @read.returns 'read'
+    Given -> @replace = sinon.stub @subject, 'replace'
+    Given -> @replace.returns 'replace'
+    Given -> @write = sinon.stub @subject, 'write'
+    Given -> @write.returns 'write'
     Given -> @next = sinon.spy()
     Given -> @async.each = sinon.stub()
     Given -> @cb = (err) =>
@@ -108,14 +118,14 @@ describe 'utils', ->
 
     context 'error', ->
       Given -> @async.waterfall = sinon.stub()
-      Given -> @async.waterfall.withArgs([ @subject.read, @subject.replace, @subject.write ], sinon.match.func).callsArgWith 1, 'error'
+      Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, 'error'
       When -> @waterfallFn = @subject.replaceInterpolation @options
       And -> @waterfallFn ['./foo', './bar'], @next
       Then -> expect(@next).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @async.waterfall = sinon.stub()
-      Given -> @async.waterfall.withArgs([ @subject.read, @subject.replace, @subject.write ], sinon.match.func).callsArgWith 1, null
+      Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, null
       When -> @waterfallFn = @subject.replaceInterpolation @options
       And -> @waterfallFn ['./foo', './bar'], @next
       Then -> expect(@next).to.have.been.calledWith()
@@ -125,12 +135,14 @@ describe 'utils', ->
     Given -> @fs.readFile = sinon.stub()
     context 'error', ->
       Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, 'error', null
-      When -> @subject.read './foo', @cb
+      When -> @waterfallFn = @subject.read './foo'
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, null, 'data'
-      When -> @subject.read './foo', @cb
+      When -> @waterfallFn = @subject.read './foo'
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith null, 'data'
 
   describe '.replace', ->
@@ -145,23 +157,25 @@ describe 'utils', ->
         replacement: 'monkey'
     When -> @waterfallFn = @subject.replace @options
     And -> @waterfallFn 'some <%= data %> we found in <%= repoName %>', @cb
-    And -> console.log @cb.getCall(0).args
     Then -> expect(@cb).to.have.been.calledWith null, 'some words we found in xanadu'
 
   describe '.write', ->
+    Given -> @next = sinon.spy()
+    Given -> @fs.writeFile = sinon.stub()
+    context 'no error', ->
+      Given -> @fs.writeFile.withArgs('./foo', 'a better monkey', sinon.match.func).callsArgWith 2, null
+      When -> @waterfallFn = @subject.write './foo'
+      And -> @waterfallFn 'a better monkey', @next
+      Then -> expect(@next).to.have.been.calledWith null
 
+    context 'error', ->
+      Given -> @fs.writeFile.withArgs('./foo', 'a better monkey', sinon.match.func).callsArgWith 2, 'error'
+      When -> @waterfallFn = @subject.write './foo'
+      And -> @waterfallFn 'a better monkey', @next
+      Then -> expect(@next).to.have.been.calledWith 'error'
 
-
-    #Given -> @fs.readFile = sinon.stub()
-    #Given -> @fs.writeFile = sinon.stub()
-    #Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, null, 'some <{data}>: we found in <{repoName}>'
-    #Given -> @fs.writeFile.withArgs('./foo', 'some words we found in xanadu', sinon.match.func).callsArgWith 1, null
-    #Given -> @fs.readFile.withArgs('./bar', sinon.match.func).callsArgWith 1, null, 'a better <{replacement}>'
-    #Given -> @fs.writeFile.withArgs('./bar', 'a better monkey', sinon.match.func).callsArgWith 1, null
-    #Given -> @options =
-      #repoName: 'xanadu'
-      #vars:
-        #data: 'words'
-        #replacement: 'monkey'
-      #Given -> @fs.readFile.withArgs('./bar', sinon.match.func).callsArgWith 1, 'error', null
-      #Given -> @fs.writeFile.withArgs('./bar', 'a better monkey', sinon.match.func).callsArgWith 1, null
+  describe '.createRepo', ->
+    context 'no error', ->
+      Given -> @options =
+        repoName: 'repo'
+      When -> @subject.createRepo @options
