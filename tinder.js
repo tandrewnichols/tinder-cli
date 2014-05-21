@@ -23,14 +23,11 @@ program
   .option('-v, --vars <key>:<value>', 'Additional variables for template interpolation', coercion.obj, {})
   .option('-i, --interpolate <value>', 'Underscore interpolate pattern', _.templateSettings.interpolate.source)
   .option('-e, --evaluate <pattern>', 'Underscore evaluate pattern', _.templateSettings.evaluate.source)
-  .option('--escape <pattern>', 'Underscore escape pattern', _.templateSettings.escape.source)
-  .option('--no-clean', 'Do not rm -rf on a faiure')
-  .option('--private', 'Create a private github repo')
-  .option('--no-wiki', 'Do not create a github wiki')
-  .option('--no-issues', 'Do not create a github issues page')
-  .option('--auto-init', 'Auto-init github repo')
-  .option('--gitignore <type>', 'Initialize repo with gitignore')
-  .option('--license <type>', 'Initialize repo with license')
+  .option('-E, --escape <pattern>', 'Underscore escape pattern', _.templateSettings.escape.source)
+  .option('-c, --no-clean', 'Do not rm -rf on a faiure')
+  .option('-p, --private', 'Create a private github repo')
+  .option('-w, --no-wiki', 'Do not create a github wiki')
+  .option('-I, --no-issues', 'Do not create a github issues page')
   .action(cli.create);
 
 program.parse(process.argv);

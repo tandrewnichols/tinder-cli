@@ -176,6 +176,36 @@ describe 'utils', ->
 
   describe '.createRepo', ->
     context 'no error', ->
-      Given -> @options =
-        repoName: 'repo'
-      When -> @subject.createRepo @options
+      Given -> @request.post = sinon.stub()
+      Given -> @cb = sinon.spy()
+
+      context 'private, wiki, issues', ->
+        Given -> @request.post.withArgs('https://api.github.com/users/repos',
+          json:
+            name: 'repo'
+            description: 'a repo'
+            private: true
+            has_wiki: true
+            has_issues: true
+          auth:
+            user: 'theBigFoo'
+        , sinon.match.func).callsArgWith 2, null, 'res',
+          some:
+            fake: 'stuff'
+          that:
+            github: 'returns'
+        Given -> @options =
+          user: 'theBigFoo'
+          repoName: 'repo'
+          description: 'a repo'
+          private: true
+          wiki: true
+          issues: true
+        When -> @waterfallFn = @subject.createRepo @options
+        And -> @waterfallFn @cb
+        Then -> expect(@cb).to.have.been.called
+        And -> expect(@options.repo).to.deeply.equal
+          some:
+            fake: 'stuff'
+          that:
+            github: 'returns'
