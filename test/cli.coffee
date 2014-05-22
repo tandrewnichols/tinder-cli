@@ -89,10 +89,22 @@ describe 'cli', ->
     Given -> @utils.replaceInterpolation.withArgs(@options).returns 'replaceInterpolation'
     Given -> @utils.createRepo = sinon.stub()
     Given -> @utils.createRepo.withArgs(@options).returns 'createRepo'
-    Given -> @async.waterfall = sinon.stub()
+    Given -> @utils.createRemote = sinon.stub()
+    Given -> @utils.createRemote.withArgs(@options).returns 'createRemote'
+    Given -> @utils.commit = sinon.stub()
+    Given -> @utils.commit.withArgs(@options).returns 'commit'
+    Given -> @async.auto = sinon.stub()
 
     context 'no error', ->
-      Given -> @async.waterfall.withArgs([ 'getGithubUrl', 'clone', 'findInterpolation', 'replaceInterpolation', 'createRepo' ], sinon.match.func).callsArgWith 1, null
+      Given -> @async.auto.withArgs(
+        getGithubUrl: 'getGithubUrl'
+        clone: ['getGithubUrl', 'clone']
+        findInterpolation: ['clone', 'findInterpolation']
+        replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
+        createRepo: 'createRepo'
+        createRemote: ['createRepo', 'createRemote']
+        commit: ['replaceInterpolation', 'createRemote', 'commit']
+      , sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
@@ -101,7 +113,15 @@ describe 'cli', ->
 
     context 'error', ->
       Given -> @options.vars = type: 'foo'
-      Given -> @async.waterfall.withArgs([ 'getGithubUrl', 'clone', 'findInterpolation', 'replaceInterpolation', 'createRepo' ], sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
+      Given -> @async.auto.withArgs(
+        getGithubUrl: 'getGithubUrl'
+        clone: ['getGithubUrl', 'clone']
+        findInterpolation: ['clone', 'findInterpolation']
+        replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
+        createRepo: 'createRepo'
+        createRemote: ['createRepo', 'createRemote']
+        commit: ['replaceInterpolation', 'createRemote', 'commit']
+      , sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'

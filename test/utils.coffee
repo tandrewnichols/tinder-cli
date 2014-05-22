@@ -55,10 +55,8 @@ describe 'utils', ->
   describe '.clone', ->
     afterEach ->
       process.chdir.restore()
-      console.log.restore()
     Given -> @cb = sinon.spy()
     Given -> sinon.stub process, 'chdir'
-    Given -> sinon.spy console, 'log'
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
       repoName: 'pizza'
@@ -74,7 +72,6 @@ describe 'utils', ->
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
       Then -> expect(@cb).to.have.been.calledWith null
-      And -> expect(console.log).to.have.been.calledWith 'Created pizza'.green
       And -> expect(process.chdir).to.have.been.calledWith 'pizza'
 
     context 'stderr', ->
@@ -175,12 +172,33 @@ describe 'utils', ->
       Then -> expect(@next).to.have.been.calledWith 'error'
 
   describe '.createRepo', ->
-    context 'no error', ->
-      Given -> @request.post = sinon.stub()
-      Given -> @cb = sinon.spy()
+    Given -> @request.post = sinon.stub()
+    Given -> @cb = sinon.spy()
+    context 'error', ->
+      Given -> @request.post.withArgs('https://api.github.com/user/repos',
+        json:
+          name: 'repo'
+          description: 'a repo'
+          private: true
+          has_wiki: true
+          has_issues: true
+        auth:
+          user: 'theBigFoo'
+      , sinon.match.func).callsArgWith 2, 'error', null, null
+      Given -> @options =
+        user: 'theBigFoo'
+        repoName: 'repo'
+        description: 'a repo'
+        private: true
+        wiki: true
+        issues: true
+      When -> @waterfallFn = @subject.createRepo @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.calledWith 'error'
 
+    context 'no error', ->
       context 'private, wiki, issues', ->
-        Given -> @request.post.withArgs('https://api.github.com/users/repos',
+        Given -> @request.post.withArgs('https://api.github.com/user/repos',
           json:
             name: 'repo'
             description: 'a repo'
@@ -190,6 +208,7 @@ describe 'utils', ->
           auth:
             user: 'theBigFoo'
         , sinon.match.func).callsArgWith 2, null, 'res',
+          html_url: 'http://github.com/foo/bar'
           some:
             fake: 'stuff'
           that:
@@ -205,7 +224,77 @@ describe 'utils', ->
         And -> @waterfallFn @cb
         Then -> expect(@cb).to.have.been.called
         And -> expect(@options.repo).to.deeply.equal
+          html_url: 'http://github.com/foo/bar'
           some:
             fake: 'stuff'
           that:
             github: 'returns'
+
+      context 'no private, wiki, issues', ->
+        Given -> @request.post.withArgs('https://api.github.com/user/repos',
+          json:
+            name: 'repo'
+            description: 'a repo'
+            private: false
+            has_wiki: false
+            has_issues: false
+          auth:
+            user: 'theBigFoo'
+        , sinon.match.func).callsArgWith 2, null, 'res',
+          html_url: 'http://github.com/pizza/delivery'
+          some:
+            fake: 'stuff'
+          that:
+            github: 'returns'
+        Given -> @options =
+          user: 'theBigFoo'
+          repoName: 'repo'
+          description: 'a repo'
+          private: false
+          wiki: false
+          issues: false
+        When -> @waterfallFn = @subject.createRepo @options
+        And -> @waterfallFn @cb
+        Then -> expect(@cb).to.have.been.called
+        And -> expect(@options.repo).to.deeply.equal
+          html_url: 'http://github.com/pizza/delivery'
+          some:
+            fake: 'stuff'
+          that:
+            github: 'returns'
+
+  describe '.createRemote', ->
+    Given -> @cb = sinon.spy()
+    Given -> @cp.exec = sinon.stub()
+    Given -> @options =
+      repo:
+        clone_url: 'Bob Lob Law'
+
+    context 'error', ->
+      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law', sinon.match.func).callsArgWith 1, 'error', null, null
+      When -> @waterfallFn = @subject.createRemote @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.calledWith 'error'
+      
+    context 'stderr', ->
+      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law', sinon.match.func).callsArgWith 1, null, null, 'stderr'
+      When -> @waterfallFn = @subject.createRemote @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.calledWith 'stderr'
+
+    context 'success', ->
+      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law', sinon.match.func).callsArgWith 1, null, 'data', null
+      When -> @waterfallFn = @subject.createRemote @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.called
+
+  describe '.commit', ->
+    Given -> @options =
+      template: 'foo/bar'
+    Given -> @cb = sinon.spy()
+    Given -> @cp.exec = sinon.stub()
+    Given -> @cp.exec.withArgs('git add .', sinon.match.func).callsArgWith 1, null, 'data', null
+    Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"', sinon.match.func).callsArgWith 1, null, 'data', null
+    When -> @waterfallFn = @subject.commit @options
+    And -> @waterfallFn @cb
+    Then -> expect(@cb).to.have.been.called
