@@ -62,20 +62,26 @@ describe 'utils', ->
       repoName: 'pizza'
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza', sinon.match.func).callsArgWith 1, 'error', null, null
+      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'no error', ->
-      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza', sinon.match.func).callsArgWith 1, null, 'content', null
+      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, 'content', null
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
       Then -> expect(@cb).to.have.been.calledWith null
       And -> expect(process.chdir).to.have.been.calledWith 'pizza'
 
     context 'stderr', ->
-      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza', sinon.match.func).callsArgWith 1, null, null, 'stderr'
+      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
@@ -271,30 +277,105 @@ describe 'utils', ->
         clone_url: 'Bob Lob Law'
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law', sinon.match.func).callsArgWith 1, 'error', null, null
+      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @waterfallFn = @subject.createRemote @options
       And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
       
     context 'stderr', ->
-      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law', sinon.match.func).callsArgWith 1, null, null, 'stderr'
+      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
       When -> @waterfallFn = @subject.createRemote @options
       And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
     context 'success', ->
-      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law', sinon.match.func).callsArgWith 1, null, 'data', null
+      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @waterfallFn = @subject.createRemote @options
       And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.called
+
+  describe '.add', ->
+    Given -> @cb = sinon.spy()
+    Given -> @cp.exec = sinon.stub()
+
+    context 'no error', ->
+      Given -> @cp.exec.withArgs('git add .',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, 'data', null
+      When -> @subject.add @cb
+      Then -> expect(@cb).to.have.been.called
+
+    context 'error', ->
+      Given -> @cp.exec.withArgs('git add .',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, 'error', null, null
+      When -> @subject.add @cb
+      Then -> expect(@cb).to.have.been.calledWith 'error'
+
+    context 'stderr', ->
+      Given -> @cp.exec.withArgs('git add .',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
+      When -> @subject.add @cb
+      Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
   describe '.commit', ->
     Given -> @options =
       template: 'foo/bar'
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
-    Given -> @cp.exec.withArgs('git add .', sinon.match.func).callsArgWith 1, null, 'data', null
-    Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"', sinon.match.func).callsArgWith 1, null, 'data', null
-    When -> @waterfallFn = @subject.commit @options
-    And -> @waterfallFn @cb
-    Then -> expect(@cb).to.have.been.called
+
+    context 'no error', ->
+      Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, 'data', null
+      When -> @waterfallFn = @subject.commit @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.called
+
+    context 'error', ->
+      Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, 'error', null, null
+      When -> @waterfallFn = @subject.commit @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.calledWith 'error'
+
+    context 'stderr', ->
+      Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
+      When -> @waterfallFn = @subject.commit @options
+      And -> @waterfallFn @cb
+      Then -> expect(@cb).to.have.been.calledWith 'stderr'
+
+  describe '.push', ->
+    Given -> @cb = sinon.spy()
+    Given -> @cp.exec = sinon.stub()
+
+    context 'no error', ->
+      Given -> @cp.exec.withArgs('git push origin master',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, 'data', null
+      When -> @subject.push @cb
+      Then -> expect(@cb).to.have.been.called
+
+    context 'error', ->
+      Given -> @cp.exec.withArgs('git push origin master',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, 'error', null, null
+      When -> @subject.push @cb
+      Then -> expect(@cb).to.have.been.calledWith 'error'
+
+    context 'stderr', ->
+      Given -> @cp.exec.withArgs('git push origin master',
+        stdio: 'inherit'
+      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
+      When -> @subject.push @cb
+      Then -> expect(@cb).to.have.been.calledWith 'stderr'
