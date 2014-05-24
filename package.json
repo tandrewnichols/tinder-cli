@@ -33,10 +33,11 @@
   "devDependencies": {
     "coffee-script": "1.7.1",
     "mocha": "git://github.com/tandrewnichols/mocha.git#suppress-stack",
-    "proxyquire": "0.5.3",
+    "proxyquire": "1.0.0",
     "sinon": "1.7.3",
     "mocha-given": "0.0.18",
-    "indeed": "1.0.5"
+    "indeed": "1.0.5",
+    "wordgenerator": "0.0.1"
   },
   "keywords": [
     "builder",

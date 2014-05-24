@@ -154,10 +154,9 @@ describe 'utils', ->
       interpolate: _.templateSettings.interpolate.source
       evaluate: _.templateSettings.evaluate.source
       escape: _.templateSettings.escape.source
-      vars:
-        repoName: 'xanadu'
-        data: 'words'
-        replacement: 'monkey'
+      repoName: 'xanadu'
+      data: 'words'
+      replacement: 'monkey'
     When -> @waterfallFn = @subject.replace @options
     And -> @waterfallFn 'some <%= data %> we found in <%= repoName %>', @cb
     Then -> expect(@cb).to.have.been.calledWith null, 'some words we found in xanadu'

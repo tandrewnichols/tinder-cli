@@ -78,7 +78,8 @@ describe 'cli', ->
       @subject.exit.restore()
     Given -> sinon.stub @subject, 'cleanup'
     Given -> sinon.stub @subject, 'exit'
-    Given -> @options = {}
+    Given -> @options =
+      description: 'code piece'
     Given -> @utils.getGithubUrl = sinon.stub()
     Given -> @utils.getGithubUrl.withArgs(@options).returns 'getGithubUrl'
     Given -> @utils.clone = sinon.stub()
@@ -110,7 +111,6 @@ describe 'cli', ->
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
-      And -> expect(@options.vars).to.deep.equal repoName: 'horace-the-horrible'
       And -> expect(@subject.exit).to.have.been.called
 
     context 'error', ->
@@ -129,7 +129,5 @@ describe 'cli', ->
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
-      And -> expect(@options.vars).to.deep.equal
-        repoName: 'horace-the-horrible'
-        type: 'foo'
+      And -> expect(@options.type).to.equal 'foo'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options
