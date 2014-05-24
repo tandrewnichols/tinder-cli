@@ -66,7 +66,8 @@ describe 'utils', ->
         stdio: 'inherit'
       , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @waterfallFn = @subject.clone @options
-      And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
+      And -> @waterfallFn @cb,
+        getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'no error', ->
@@ -74,7 +75,8 @@ describe 'utils', ->
         stdio: 'inherit'
       , sinon.match.func).callsArgWith 2, null, 'content', null
       When -> @waterfallFn = @subject.clone @options
-      And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
+      And -> @waterfallFn @cb,
+        getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith null
       And -> expect(process.chdir).to.have.been.calledWith 'pizza'
 
@@ -83,7 +85,8 @@ describe 'utils', ->
         stdio: 'inherit'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
       When -> @waterfallFn = @subject.clone @options
-      And -> @waterfallFn 'git@github.com:foo/bar.git', @cb
+      And -> @waterfallFn @cb,
+        getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
   describe '.findInterpolation', ->
@@ -123,14 +126,16 @@ describe 'utils', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, 'error'
       When -> @waterfallFn = @subject.replaceInterpolation @options
-      And -> @waterfallFn ['./foo', './bar'], @next
+      And -> @waterfallFn @next,
+        findInterpolation: ['./foo', './bar']
       Then -> expect(@next).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, null
       When -> @waterfallFn = @subject.replaceInterpolation @options
-      And -> @waterfallFn ['./foo', './bar'], @next
+      And -> @waterfallFn @next,
+        findInterpolation: ['./foo', './bar']
       Then -> expect(@next).to.have.been.calledWith()
 
   describe '.read', ->
