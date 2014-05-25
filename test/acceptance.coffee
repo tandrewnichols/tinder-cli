@@ -7,6 +7,7 @@ describe.skip 'acceptance', ->
     @repo = words
     done()
   afterEach (done) ->
+    console.log('running afterEach')
     rm = cp.spawn "rm", ["-rf", @repo], { cwd: "#{__dirname}/..", stdio: 'inherit' }
     rm.on 'close', ->
       done()
@@ -20,6 +21,10 @@ describe.skip 'acceptance', ->
     };
     """
   , done
+  #Given (done) ->
+    #tree = cp.spawn('tree', ['-I', 'node_modules'], { stdio: 'inherit' })
+    #tree.on 'close', ->
+      #done()
   Given -> @request =
     '@global': true
   Given -> @cp =
@@ -71,8 +76,12 @@ describe.skip 'acceptance', ->
     vars:
       foo: 'bar'
       baz: 'q,u,u,x'
-  When -> @cli.create @repo, 'tinder-template', @options
-  And -> @blah = require "../#{@repo}/blah"
+  #When -> @cli.create @repo, 'tinder-template', @options
+  When (done) ->
+    tinder = cp.spawn 'tinder', ['new', @repo, 'tinder-template', '-u', 'tandrewnichols', '-d', 'A test repository', '-v', '{"foo": "bar", "baz": "q,u,u,x"}'], { stdio: 'inherit' }
+    tinder.on 'close', ->
+      done()
+  And -> console.log 'second When';@blah = require "../#{@repo}/blah"
   Then ->
     expect(@blah.repoName).to.equal "This repo is called #{@repo}"
     expect(@blah.foo).to.equal 'It was created with var "foo" = "bar"'
