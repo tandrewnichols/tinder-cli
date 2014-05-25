@@ -92,8 +92,14 @@ describe 'cli', ->
     Given -> @utils.createRepo.withArgs(@options).returns 'createRepo'
     Given -> @utils.createRemote = sinon.stub()
     Given -> @utils.createRemote.withArgs(@options).returns 'createRemote'
+    Given -> @utils.add = sinon.stub()
+    Given -> @utils.add.withArgs(@options).returns 'add'
     Given -> @utils.commit = sinon.stub()
     Given -> @utils.commit.withArgs(@options).returns 'commit'
+    Given -> @utils.push = sinon.stub()
+    Given -> @utils.push.withArgs(@options).returns 'push'
+    Given -> @utils.chdir = sinon.stub()
+    Given -> @utils.chdir.withArgs(@options).returns 'chdir'
     Given -> @async.auto = sinon.stub()
 
     context 'no error', ->
@@ -104,13 +110,15 @@ describe 'cli', ->
         replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
         createRepo: 'createRepo'
         createRemote: ['createRepo', 'createRemote']
-        add: ['replaceInterpolation', 'createRemote', @utils.add]
+        add: ['replaceInterpolation', 'createRemote', 'add']
         commit: ['add', 'commit']
-        push: ['commit', @utils.push]
+        push: ['commit', 'push']
+        chdir: ['push', 'chdir']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
+      And -> expect(@options.cwd).to.equal './horace-the-horrible'
       And -> expect(@subject.exit).to.have.been.called
 
     context 'error', ->
@@ -122,12 +130,14 @@ describe 'cli', ->
         replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
         createRepo: 'createRepo'
         createRemote: ['createRepo', 'createRemote']
-        add: ['replaceInterpolation', 'createRemote', @utils.add]
+        add: ['replaceInterpolation', 'createRemote', 'add']
         commit: ['add', 'commit']
-        push: ['commit', @utils.push]
+        push: ['commit', 'push']
+        chdir: ['push', 'chdir']
       , sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
       And -> expect(@options.type).to.equal 'foo'
+      And -> expect(@options.cwd).to.equal './horace-the-horrible'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options

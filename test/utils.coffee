@@ -57,6 +57,7 @@ describe 'utils', ->
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
       repoName: 'pizza'
+      cwd: './pizza'
 
     context 'error', ->
       Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
@@ -276,7 +277,7 @@ describe 'utils', ->
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
-      repoName: 'bobloblaw'
+      cwd: './bobloblaw'
       repo:
         clone_url: 'git@github.com:tandrewnichols/bobloblaw'
 
@@ -311,7 +312,7 @@ describe 'utils', ->
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
-      repoName: 'moosen'
+      cwd: './moosen'
 
     context 'no error', ->
       Given -> @cp.exec.withArgs('git add .',
@@ -342,7 +343,7 @@ describe 'utils', ->
 
   describe '.commit', ->
     Given -> @options =
-      repoName: 'fuzzy-lovehandles'
+      cwd: './fuzzy-lovehandles'
       template: 'foo/bar'
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
@@ -377,24 +378,42 @@ describe 'utils', ->
   describe '.push', ->
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
+    Given -> @options =
+      cwd: './michael-jackson-impersonater'
 
     context 'no error', ->
       Given -> @cp.exec.withArgs('git push origin master',
         stdio: 'inherit'
+        cwd: './michael-jackson-impersonater'
       , sinon.match.func).callsArgWith 2, null, 'data', null
-      When -> @subject.push @cb
+      When -> @waterfallFn = @subject.push @options
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
       Given -> @cp.exec.withArgs('git push origin master',
         stdio: 'inherit'
+        cwd: './michael-jackson-impersonater'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @subject.push @cb
+      When -> @waterfallFn = @subject.push @options
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'stderr', ->
       Given -> @cp.exec.withArgs('git push origin master',
         stdio: 'inherit'
+        cwd: './michael-jackson-impersonater'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @subject.push @cb
+      When -> @waterfallFn = @subject.push @options
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
+
+  describe '.chdir', ->
+    afterEach -> process.chdir.restore()
+    Given -> sinon.stub process, 'chdir'
+    Given -> @cb = sinon.spy()
+    Given -> @options =
+      repoName: 'inebriated-barber'
+    When -> @waterfallFn = @subject.chdir @options
+    And -> @waterfallFn @cb
+    Then -> expect(process.chdir).to.have.been.calledWith 'inebriated-barber'
