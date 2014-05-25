@@ -76,30 +76,23 @@ describe 'cli', ->
     afterEach ->
       @subject.cleanup.restore()
       @subject.exit.restore()
+      @utils.create.restore()
     Given -> sinon.stub @subject, 'cleanup'
     Given -> sinon.stub @subject, 'exit'
+    Given -> sinon.stub @utils, 'create'
+    Given -> @utils.create.returns
+      getGithubUrl: 'getGithubUrl'
+      clone: 'clone'
+      findInterpolation: 'findInterpolation'
+      replaceInterpolation: 'replaceInterpolation'
+      createRepo: 'createRepo'
+      createRemote: 'createRemote'
+      add: 'add'
+      commit: 'commit'
+      push: 'push'
+      chdir: 'chdir'
     Given -> @options =
       description: 'code piece'
-    Given -> @utils.getGithubUrl = sinon.stub()
-    Given -> @utils.getGithubUrl.withArgs(@options).returns 'getGithubUrl'
-    Given -> @utils.clone = sinon.stub()
-    Given -> @utils.clone.withArgs(@options).returns 'clone'
-    Given -> @utils.findInterpolation = sinon.stub()
-    Given -> @utils.findInterpolation.withArgs(@options).returns 'findInterpolation'
-    Given -> @utils.replaceInterpolation = sinon.stub()
-    Given -> @utils.replaceInterpolation.withArgs(@options).returns 'replaceInterpolation'
-    Given -> @utils.createRepo = sinon.stub()
-    Given -> @utils.createRepo.withArgs(@options).returns 'createRepo'
-    Given -> @utils.createRemote = sinon.stub()
-    Given -> @utils.createRemote.withArgs(@options).returns 'createRemote'
-    Given -> @utils.add = sinon.stub()
-    Given -> @utils.add.withArgs(@options).returns 'add'
-    Given -> @utils.commit = sinon.stub()
-    Given -> @utils.commit.withArgs(@options).returns 'commit'
-    Given -> @utils.push = sinon.stub()
-    Given -> @utils.push.withArgs(@options).returns 'push'
-    Given -> @utils.chdir = sinon.stub()
-    Given -> @utils.chdir.withArgs(@options).returns 'chdir'
     Given -> @async.auto = sinon.stub()
 
     context 'no error', ->

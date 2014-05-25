@@ -19,15 +19,15 @@ describe 'utils', ->
     context 'full url', ->
       Given -> @options =
         template: 'git@github.com:foo/bar.git'
-      When -> @waterfallFn = @subject.getGithubUrl @options
-      And -> @waterfallFn @cb
+      When -> @fn = @subject.create @options
+      And -> @fn.getGithubUrl @cb
       Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
 
     context 'user/repo', ->
       Given -> @options =
         template: 'foo/bar'
-      When -> @waterfallFn = @subject.getGithubUrl @options
-      And -> @waterfallFn @cb
+      When -> @fn = @subject.create @options
+      And -> @fn.getGithubUrl @cb
       Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
 
     context 'repo', ->
@@ -36,20 +36,20 @@ describe 'utils', ->
         template: 'bar'
       context 'npm error', ->
         Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, 'error', null, null
-        When -> @waterfallFn = @subject.getGithubUrl @options
-        And -> @waterfallFn @cb
+        When -> @fn = @subject.create @options
+        And -> @fn.getGithubUrl @cb
         Then -> expect(@cb).to.have.been.calledWith 'error', null
 
       context 'npm timeout', ->
         Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null, null, null
-        When -> @waterfallFn = @subject.getGithubUrl @options
-        And -> @waterfallFn @cb
+        When -> @fn = @subject.create @options
+        And -> @fn.getGithubUrl @cb
         Then -> expect(@cb).to.have.been.calledWith 'https://registry.npmjs.org timed out processing the request', null
 
       context 'success', ->
         Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null, null, {homepage: 'https://github.com/foo/bar'}
-        When -> @waterfallFn = @subject.getGithubUrl @options
-        And -> @waterfallFn @cb
+        When -> @fn = @subject.create @options
+        And -> @fn.getGithubUrl @cb
         Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
 
   describe '.clone', ->
@@ -58,14 +58,14 @@ describe 'utils', ->
     Given -> @options =
       repoName: 'pizza'
       cwd: './pizza'
+    Given -> @fn = @subject.create @options
 
     context 'error', ->
       Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
         stdio: 'inherit'
         cwd: './pizza'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @waterfallFn = @subject.clone @options
-      And -> @waterfallFn @cb,
+      When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
@@ -74,8 +74,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './pizza'
       , sinon.match.func).callsArgWith 2, null, 'content', null
-      When -> @waterfallFn = @subject.clone @options
-      And -> @waterfallFn @cb,
+      When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith null
 
@@ -84,8 +83,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './pizza'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @waterfallFn = @subject.clone @options
-      And -> @waterfallFn @cb,
+      When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
@@ -99,59 +97,53 @@ describe 'utils', ->
       interpolate: 'foo'
       escape: 'bar'
       evaluate: 'baz'
+    Given -> @fn = @subject.create @options
     Given -> @cp.spawn.withArgs('grep', ['-rlP', 'foo|baz|bar', './six-toed-sloth']).returns @grep
-    When -> @waterfallFn = @subject.findInterpolation @options
-    And -> @waterfallFn @cb
+    When -> @fn.findInterpolation @cb
     And -> @grep.stdout.emit 'data', 'foo\nbar\nbaz'
     And -> @grep.emit 'close'
     Then -> expect(@cb).to.have.been.calledWith null, ['foo', 'bar', 'baz']
 
   describe '.replaceInterpolation', ->
-    afterEach ->
-      @subject.read.restore()
-      @subject.replace.restore()
-      @subject.write.restore()
-    Given -> @read = sinon.stub @subject, 'read'
-    Given -> @read.returns 'read'
-    Given -> @replace = sinon.stub @subject, 'replace'
-    Given -> @replace.returns 'replace'
-    Given -> @write = sinon.stub @subject, 'write'
-    Given -> @write.returns 'write'
+    afterEach -> @subject.replace.restore()
+    Given -> sinon.stub @subject, 'replace'
+    Given -> @subject.replace.returns
+      read: 'read'
+      replace: 'replace'
+      write: 'write'
     Given -> @next = sinon.spy()
     Given -> @async.each = sinon.stub()
     Given -> @cb = (err) =>
       @async.each.getCall(0).args[2](err)
     Given -> @async.each.withArgs(['./foo', './bar'], sinon.match.func, sinon.match.func).callsArgWith 1, './foo', @cb
+    Given -> @fn = @subject.create {}
 
     context 'error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, 'error'
-      When -> @waterfallFn = @subject.replaceInterpolation @options
-      And -> @waterfallFn @next,
+      When -> @fn.replaceInterpolation @next,
         findInterpolation: ['./foo', './bar']
       Then -> expect(@next).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, null
-      When -> @waterfallFn = @subject.replaceInterpolation @options
-      And -> @waterfallFn @next,
+      When -> @fn.replaceInterpolation @next,
         findInterpolation: ['./foo', './bar']
       Then -> expect(@next).to.have.been.calledWith()
 
   describe '.read', ->
     Given -> @cb = sinon.spy()
     Given -> @fs.readFile = sinon.stub()
+    Given -> @fn = @subject.replace './foo', {}
     context 'error', ->
       Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, 'error', null
-      When -> @waterfallFn = @subject.read './foo'
-      And -> @waterfallFn @cb
+      When -> @fn.read @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, null, 'data'
-      When -> @waterfallFn = @subject.read './foo'
-      And -> @waterfallFn @cb
+      When -> @fn.read @cb
       Then -> expect(@cb).to.have.been.calledWith null, 'data'
 
   describe '.replace', ->
@@ -163,23 +155,22 @@ describe 'utils', ->
       repoName: 'xanadu'
       data: 'words'
       replacement: 'monkey'
-    When -> @waterfallFn = @subject.replace @options
-    And -> @waterfallFn 'some <%= data %> we found in <%= repoName %>', @cb
+    Given -> @fn = @subject.replace './foo', @options
+    And -> @fn.replace 'some <%= data %> we found in <%= repoName %>', @cb
     Then -> expect(@cb).to.have.been.calledWith null, 'some words we found in xanadu'
 
   describe '.write', ->
     Given -> @next = sinon.spy()
     Given -> @fs.writeFile = sinon.stub()
+    Given -> @fn = @subject.replace './foo', {}
     context 'no error', ->
       Given -> @fs.writeFile.withArgs('./foo', 'a better monkey', sinon.match.func).callsArgWith 2, null
-      When -> @waterfallFn = @subject.write './foo'
-      And -> @waterfallFn 'a better monkey', @next
+      When -> @fn.write 'a better monkey', @next
       Then -> expect(@next).to.have.been.calledWith null
 
     context 'error', ->
       Given -> @fs.writeFile.withArgs('./foo', 'a better monkey', sinon.match.func).callsArgWith 2, 'error'
-      When -> @waterfallFn = @subject.write './foo'
-      And -> @waterfallFn 'a better monkey', @next
+      When -> @fn.write 'a better monkey', @next
       Then -> expect(@next).to.have.been.calledWith 'error'
 
   describe '.createRepo', ->
@@ -203,8 +194,8 @@ describe 'utils', ->
         private: true
         wiki: true
         issues: true
-      When -> @waterfallFn = @subject.createRepo @options
-      And -> @waterfallFn @cb
+      Given -> @fn = @subject.create @options
+      When -> @fn.createRepo @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'no error', ->
@@ -231,8 +222,8 @@ describe 'utils', ->
           private: true
           wiki: true
           issues: true
-        When -> @waterfallFn = @subject.createRepo @options
-        And -> @waterfallFn @cb
+        Given -> @fn = @subject.create @options
+        When -> @fn.createRepo @cb
         Then -> expect(@cb).to.have.been.called
         And -> expect(@options.repo).to.deeply.equal
           html_url: 'http://github.com/foo/bar'
@@ -264,8 +255,8 @@ describe 'utils', ->
           private: false
           wiki: false
           issues: false
-        When -> @waterfallFn = @subject.createRepo @options
-        And -> @waterfallFn @cb
+        Given -> @fn = @subject.create @options
+        When -> @fn.createRepo @cb
         Then -> expect(@cb).to.have.been.called
         And -> expect(@options.repo).to.deeply.equal
           html_url: 'http://github.com/pizza/delivery'
@@ -281,14 +272,14 @@ describe 'utils', ->
       cwd: './bobloblaw'
       repo:
         clone_url: 'git@github.com:tandrewnichols/bobloblaw'
+    Given -> @fn = @subject.create @options
 
     context 'error', ->
       Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
         stdio: 'inherit'
         cwd: './bobloblaw'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @waterfallFn = @subject.createRemote @options
-      And -> @waterfallFn @cb
+      When -> @fn.createRemote @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
       
     context 'stderr', ->
@@ -296,8 +287,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './bobloblaw'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @waterfallFn = @subject.createRemote @options
-      And -> @waterfallFn @cb
+      When -> @fn.createRemote @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
     context 'success', ->
@@ -305,8 +295,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './bobloblaw'
       , sinon.match.func).callsArgWith 2, null, 'data', null
-      When -> @waterfallFn = @subject.createRemote @options
-      And -> @waterfallFn @cb
+      When -> @fn.createRemote @cb
       Then -> expect(@cb).to.have.been.called
 
   describe '.add', ->
@@ -314,14 +303,14 @@ describe 'utils', ->
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
       cwd: './moosen'
+    Given -> @fn = @subject.create @options
 
     context 'no error', ->
       Given -> @cp.exec.withArgs('git add .',
         stdio: 'inherit'
         cwd: './moosen'
       , sinon.match.func).callsArgWith 2, null, 'data', null
-      When -> @waterfallFn = @subject.add @options
-      And -> @waterfallFn @cb
+      When -> @fn.add @cb
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
@@ -329,8 +318,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './moosen'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @waterfallFn = @subject.add @options
-      And -> @waterfallFn @cb
+      When -> @fn.add @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'stderr', ->
@@ -338,8 +326,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './moosen'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @waterfallFn = @subject.add @options
-      And -> @waterfallFn @cb
+      When -> @fn.add @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
   describe '.commit', ->
@@ -348,14 +335,14 @@ describe 'utils', ->
       template: 'foo/bar'
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
+    Given -> @fn = @subject.create @options
 
     context 'no error', ->
       Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
         stdio: 'inherit'
         cwd: './fuzzy-lovehandles'
       , sinon.match.func).callsArgWith 2, null, 'data', null
-      When -> @waterfallFn = @subject.commit @options
-      And -> @waterfallFn @cb
+      When -> @fn.commit @cb
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
@@ -363,8 +350,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './fuzzy-lovehandles'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @waterfallFn = @subject.commit @options
-      And -> @waterfallFn @cb
+      When -> @fn.commit @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'stderr', ->
@@ -372,8 +358,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './fuzzy-lovehandles'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @waterfallFn = @subject.commit @options
-      And -> @waterfallFn @cb
+      When -> @fn.commit @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
   describe '.push', ->
@@ -381,14 +366,14 @@ describe 'utils', ->
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
       cwd: './michael-jackson-impersonater'
+    Given -> @fn = @subject.create @options
 
     context 'no error', ->
       Given -> @cp.exec.withArgs('git push origin master',
         stdio: 'inherit'
         cwd: './michael-jackson-impersonater'
       , sinon.match.func).callsArgWith 2, null, 'data', null
-      When -> @waterfallFn = @subject.push @options
-      And -> @waterfallFn @cb
+      When -> @fn.push @cb
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
@@ -396,8 +381,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './michael-jackson-impersonater'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @waterfallFn = @subject.push @options
-      And -> @waterfallFn @cb
+      When -> @fn.push @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'stderr', ->
@@ -405,8 +389,7 @@ describe 'utils', ->
         stdio: 'inherit'
         cwd: './michael-jackson-impersonater'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @waterfallFn = @subject.push @options
-      And -> @waterfallFn @cb
+      When -> @fn.push @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
   describe '.chdir', ->
@@ -415,6 +398,6 @@ describe 'utils', ->
     Given -> @cb = sinon.spy()
     Given -> @options =
       repoName: 'inebriated-barber'
-    When -> @waterfallFn = @subject.chdir @options
-    And -> @waterfallFn @cb
+    Given -> @fn = @subject.create @options
+    When -> @fn.chdir @cb
     Then -> expect(process.chdir).to.have.been.calledWith 'inebriated-barber'
