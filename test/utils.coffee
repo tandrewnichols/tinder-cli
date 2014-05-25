@@ -53,10 +53,7 @@ describe 'utils', ->
         Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
 
   describe '.clone', ->
-    afterEach ->
-      process.chdir.restore()
     Given -> @cb = sinon.spy()
-    Given -> sinon.stub process, 'chdir'
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
       repoName: 'pizza'
@@ -64,6 +61,7 @@ describe 'utils', ->
     context 'error', ->
       Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
         stdio: 'inherit'
+        cwd: './pizza'
       , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn @cb,
@@ -73,16 +71,17 @@ describe 'utils', ->
     context 'no error', ->
       Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
         stdio: 'inherit'
+        cwd: './pizza'
       , sinon.match.func).callsArgWith 2, null, 'content', null
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       Then -> expect(@cb).to.have.been.calledWith null
-      And -> expect(process.chdir).to.have.been.calledWith 'pizza'
 
     context 'stderr', ->
       Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
         stdio: 'inherit'
+        cwd: './pizza'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
       When -> @waterfallFn = @subject.clone @options
       And -> @waterfallFn @cb,
@@ -277,28 +276,32 @@ describe 'utils', ->
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
     Given -> @options =
+      repoName: 'bobloblaw'
       repo:
-        clone_url: 'Bob Lob Law'
+        clone_url: 'git@github.com:tandrewnichols/bobloblaw'
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law',
+      Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
         stdio: 'inherit'
+        cwd: './bobloblaw'
       , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @waterfallFn = @subject.createRemote @options
       And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
       
     context 'stderr', ->
-      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law',
+      Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
         stdio: 'inherit'
+        cwd: './bobloblaw'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
       When -> @waterfallFn = @subject.createRemote @options
       And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
     context 'success', ->
-      Given -> @cp.exec.withArgs('git remote add origin Bob Lob Law',
+      Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
         stdio: 'inherit'
+        cwd: './bobloblaw'
       , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @waterfallFn = @subject.createRemote @options
       And -> @waterfallFn @cb
@@ -307,30 +310,39 @@ describe 'utils', ->
   describe '.add', ->
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
+    Given -> @options =
+      repoName: 'moosen'
 
     context 'no error', ->
       Given -> @cp.exec.withArgs('git add .',
         stdio: 'inherit'
+        cwd: './moosen'
       , sinon.match.func).callsArgWith 2, null, 'data', null
-      When -> @subject.add @cb
+      When -> @waterfallFn = @subject.add @options
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
       Given -> @cp.exec.withArgs('git add .',
         stdio: 'inherit'
+        cwd: './moosen'
       , sinon.match.func).callsArgWith 2, 'error', null, null
-      When -> @subject.add @cb
+      When -> @waterfallFn = @subject.add @options
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'stderr', ->
       Given -> @cp.exec.withArgs('git add .',
         stdio: 'inherit'
+        cwd: './moosen'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @subject.add @cb
+      When -> @waterfallFn = @subject.add @options
+      And -> @waterfallFn @cb
       Then -> expect(@cb).to.have.been.calledWith 'stderr'
 
   describe '.commit', ->
     Given -> @options =
+      repoName: 'fuzzy-lovehandles'
       template: 'foo/bar'
     Given -> @cb = sinon.spy()
     Given -> @cp.exec = sinon.stub()
@@ -338,6 +350,7 @@ describe 'utils', ->
     context 'no error', ->
       Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
         stdio: 'inherit'
+        cwd: './fuzzy-lovehandles'
       , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @waterfallFn = @subject.commit @options
       And -> @waterfallFn @cb
@@ -346,6 +359,7 @@ describe 'utils', ->
     context 'error', ->
       Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
         stdio: 'inherit'
+        cwd: './fuzzy-lovehandles'
       , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @waterfallFn = @subject.commit @options
       And -> @waterfallFn @cb
@@ -354,6 +368,7 @@ describe 'utils', ->
     context 'stderr', ->
       Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
         stdio: 'inherit'
+        cwd: './fuzzy-lovehandles'
       , sinon.match.func).callsArgWith 2, null, null, 'stderr'
       When -> @waterfallFn = @subject.commit @options
       And -> @waterfallFn @cb

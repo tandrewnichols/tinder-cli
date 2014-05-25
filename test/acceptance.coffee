@@ -10,6 +10,7 @@ describe.skip 'acceptance', ->
     rm = cp.spawn "rm", ["-rf", @repo], { cwd: "#{__dirname}/..", stdio: 'inherit' }
     rm.on 'close', ->
       done()
+  afterEach (done) -> process.chdir.restore()
   Given (done) -> fs.mkdir "#{@repo}", done
   Given (done) -> fs.writeFile "#{@repo}/blah.js", """
     module.exports = {
@@ -28,6 +29,7 @@ describe.skip 'acceptance', ->
     child_process: @cp
   Given -> @request.get = sinon.stub()
   Given -> @request.post = sinon.stub()
+  Given -> sinon.stub process, 'chdir'
   Given -> @request.get.withArgs('https://registry.npmjs.org/tinder-template/latest', sinon.match.func).callsArgWith 1, null, 'res',
     homepage: 'https://github.com/tandrewnichols/tinder-template'
   Given -> @request.post.withArgs('https://api.github.com/user/repos',
