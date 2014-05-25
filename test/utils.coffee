@@ -95,10 +95,11 @@ describe 'utils', ->
     Given -> @grep.stdout = new EventEmitter()
     Given -> @cp.spawn = sinon.stub()
     Given -> @options =
+      cwd: './six-toed-sloth'
       interpolate: 'foo'
       escape: 'bar'
       evaluate: 'baz'
-    Given -> @cp.spawn.withArgs('grep', ['-rlP', 'foo|baz|bar', '.']).returns @grep
+    Given -> @cp.spawn.withArgs('grep', ['-rlP', 'foo|baz|bar', './six-toed-sloth']).returns @grep
     When -> @waterfallFn = @subject.findInterpolation @options
     And -> @waterfallFn @cb
     And -> @grep.stdout.emit 'data', 'foo\nbar\nbaz'

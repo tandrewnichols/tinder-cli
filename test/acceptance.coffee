@@ -47,18 +47,23 @@ describe.skip 'acceptance', ->
   Given -> @cp.exec = sinon.stub()
   Given -> @cp.exec.withArgs("git clone git@github.com:tandrewnichols/tinder-template.git #{@repo}",
     stdio: 'inherit'
+    cwd: "./#{@repo}"
   , sinon.match.func).callsArgWith 2, null, {}, null
   Given -> @cp.exec.withArgs("git remote add origin git@github.com:tandrewnichols/#{@repo}.git",
     stdio: 'inherit'
+    cwd: "./#{@repo}"
   , sinon.match.func).callsArgWith 2, null, {}, null
   Given -> @cp.exec.withArgs("git add .",
     stdio: 'inherit'
+    cwd: "./#{@repo}"
   , sinon.match.func).callsArgWith 2, null, {}, null
   Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template tinder-template"',
     stdio: 'inherit'
+    cwd: "./#{@repo}"
   , sinon.match.func).callsArgWith 2, null, {}, null
   Given -> @cp.exec.withArgs('git push origin master',
     stdio: 'inherit'
+    cwd: "./#{@repo}"
   , sinon.match.func).callsArgWith 2, null, {}, null
   Given -> @options =
     user: 'tandrewnichols'
