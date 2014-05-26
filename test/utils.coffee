@@ -68,39 +68,27 @@ describe 'utils', ->
         Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
 
   describe '.clone', ->
+    Given -> @clone = new EventEmitter()
     Given -> @cb = sinon.spy()
-    Given -> @cp.exec = sinon.stub()
     Given -> @options =
       repoName: 'pizza'
-      cwd: './pizza'
     Given -> @fn = @subject.create @options
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:foo/bar.git', 'pizza'],
+      stdio: 'inherit'
+    ).returns @clone
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
-        stdio: 'inherit'
-        cwd: './pizza'
-      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
-      Then -> expect(@cb).to.have.been.calledWith 'error'
+      And -> @clone.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'git clone git@github.com:foo/bar.git pizza returned code 1'
 
     context 'no error', ->
-      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
-        stdio: 'inherit'
-        cwd: './pizza'
-      , sinon.match.func).callsArgWith 2, null, 'content', null
       When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
-      Then -> expect(@cb).to.have.been.calledWith null
-
-    context 'stderr', ->
-      Given -> @cp.exec.withArgs('git clone git@github.com:foo/bar.git pizza',
-        stdio: 'inherit'
-        cwd: './pizza'
-      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @fn.clone @cb,
-        getGithubUrl: 'git@github.com:foo/bar.git'
-      Then -> expect(@cb).to.have.been.calledWith 'stderr'
+      And -> @clone.emit('close', 0)
+      Then -> expect(@cb).to.have.been.called
 
   describe '.findInterpolation', ->
     Given -> @cb = sinon.spy()
@@ -202,6 +190,8 @@ describe 'utils', ->
         auth:
           user: 'theBigFoo'
           pass: 'bigfoo57'
+        headers:
+          'User-Agent': 'repo'
       , sinon.match.func).callsArgWith 2, 'error', null, null
       Given -> @options =
         user: 'theBigFoo'
@@ -226,6 +216,8 @@ describe 'utils', ->
         auth:
           user: 'theBigFoo'
           pass: 'bigfoo57'
+        headers:
+          'User-Agent': 'repo'
       , sinon.match.func).callsArgWith 2, null,
         statusCode: 418
       , null
@@ -253,6 +245,8 @@ describe 'utils', ->
           auth:
             user: 'theBigFoo'
             pass: 'bigfoo57'
+          headers:
+            'User-Agent': 'repo'
         , sinon.match.func).callsArgWith 2, null,
           statusCode: 200
         ,
@@ -290,6 +284,8 @@ describe 'utils', ->
           auth:
             user: 'theBigFoo'
             pass: 'bigfoo57'
+          headers:
+            'User-Agent': 'repo'
         , sinon.match.func).callsArgWith 2, null,
           statusCode: 200
         ,
@@ -317,8 +313,13 @@ describe 'utils', ->
             github: 'returns'
 
   describe '.createRemote', ->
+    Given -> @remote = new EventEmitter()
     Given -> @cb = sinon.spy()
-    Given -> @cp.exec = sinon.stub()
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('git', ['remote', 'set-url', 'origin', 'git@github.com:tandrewnichols/bobloblaw'],
+      stdio: 'inherit'
+      cwd: './bobloblaw'
+    ).returns @remote
     Given -> @options =
       cwd: './bobloblaw'
       repo:
@@ -326,129 +327,78 @@ describe 'utils', ->
     Given -> @fn = @subject.create @options
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
-        stdio: 'inherit'
-        cwd: './bobloblaw'
-      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @fn.createRemote @cb
-      Then -> expect(@cb).to.have.been.calledWith 'error'
+      And -> @remote.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'git remote set-url origin git@github.com:tandrewnichols/bobloblaw returned code 1'
       
-    context 'stderr', ->
-      Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
-        stdio: 'inherit'
-        cwd: './bobloblaw'
-      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @fn.createRemote @cb
-      Then -> expect(@cb).to.have.been.calledWith 'stderr'
-
     context 'success', ->
-      Given -> @cp.exec.withArgs('git remote add origin git@github.com:tandrewnichols/bobloblaw',
-        stdio: 'inherit'
-        cwd: './bobloblaw'
-      , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @fn.createRemote @cb
+      And -> @remote.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
 
   describe '.add', ->
+    Given -> @add = new EventEmitter()
     Given -> @cb = sinon.spy()
-    Given -> @cp.exec = sinon.stub()
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('git', ['add', '.'],
+      stdio: 'inherit'
+      cwd: './moosen'
+    ).returns @add
     Given -> @options =
       cwd: './moosen'
     Given -> @fn = @subject.create @options
 
     context 'no error', ->
-      Given -> @cp.exec.withArgs('git add .',
-        stdio: 'inherit'
-        cwd: './moosen'
-      , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @fn.add @cb
+      And -> @add.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git add .',
-        stdio: 'inherit'
-        cwd: './moosen'
-      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @fn.add @cb
-      Then -> expect(@cb).to.have.been.calledWith 'error'
-
-    context 'stderr', ->
-      Given -> @cp.exec.withArgs('git add .',
-        stdio: 'inherit'
-        cwd: './moosen'
-      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @fn.add @cb
-      Then -> expect(@cb).to.have.been.calledWith 'stderr'
+      And -> @add.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'git add . returned code 1'
 
   describe '.commit', ->
+    Given -> @commit = new EventEmitter()
     Given -> @options =
       cwd: './fuzzy-lovehandles'
       template: 'foo/bar'
     Given -> @cb = sinon.spy()
-    Given -> @cp.exec = sinon.stub()
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('git', ['commit', '-m', 'Initial commit using tinder template foo/bar'],
+      stdio: 'inherit'
+      cwd: './fuzzy-lovehandles'
+    ).returns @commit
     Given -> @fn = @subject.create @options
 
     context 'no error', ->
-      Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
-        stdio: 'inherit'
-        cwd: './fuzzy-lovehandles'
-      , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @fn.commit @cb
+      And -> @commit.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
-        stdio: 'inherit'
-        cwd: './fuzzy-lovehandles'
-      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @fn.commit @cb
-      Then -> expect(@cb).to.have.been.calledWith 'error'
-
-    context 'stderr', ->
-      Given -> @cp.exec.withArgs('git commit -m "Initial commit using tinder template foo/bar"',
-        stdio: 'inherit'
-        cwd: './fuzzy-lovehandles'
-      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @fn.commit @cb
-      Then -> expect(@cb).to.have.been.calledWith 'stderr'
+      And -> @commit.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'git commit -m "Initial commit using tinder template foo/bar" returned code 1'
 
   describe '.push', ->
+    Given -> @push = new EventEmitter()
     Given -> @cb = sinon.spy()
-    Given -> @cp.exec = sinon.stub()
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('git', ['push', 'origin', 'master'],
+      stdio: 'inherit'
+      cwd: './michael-jackson-impersonater'
+    ).returns @push
     Given -> @options =
       cwd: './michael-jackson-impersonater'
     Given -> @fn = @subject.create @options
 
     context 'no error', ->
-      Given -> @cp.exec.withArgs('git push origin master',
-        stdio: 'inherit'
-        cwd: './michael-jackson-impersonater'
-      , sinon.match.func).callsArgWith 2, null, 'data', null
       When -> @fn.push @cb
+      And -> @push.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
 
     context 'error', ->
-      Given -> @cp.exec.withArgs('git push origin master',
-        stdio: 'inherit'
-        cwd: './michael-jackson-impersonater'
-      , sinon.match.func).callsArgWith 2, 'error', null, null
       When -> @fn.push @cb
-      Then -> expect(@cb).to.have.been.calledWith 'error'
-
-    context 'stderr', ->
-      Given -> @cp.exec.withArgs('git push origin master',
-        stdio: 'inherit'
-        cwd: './michael-jackson-impersonater'
-      , sinon.match.func).callsArgWith 2, null, null, 'stderr'
-      When -> @fn.push @cb
-      Then -> expect(@cb).to.have.been.calledWith 'stderr'
-
-  describe '.chdir', ->
-    afterEach -> process.chdir.restore()
-    Given -> sinon.stub process, 'chdir'
-    Given -> @cb = sinon.spy()
-    Given -> @options =
-      repoName: 'inebriated-barber'
-    Given -> @fn = @subject.create @options
-    When -> @fn.chdir @cb
-    Then -> expect(process.chdir).to.have.been.calledWith 'inebriated-barber'
+      And -> @push.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'git push origin master returned code 1'

@@ -103,11 +103,10 @@ describe 'cli', ->
         findInterpolation: ['clone', 'findInterpolation']
         replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
         createRepo: 'createRepo'
-        createRemote: ['createRepo', 'createRemote']
+        createRemote: ['clone', 'createRepo', 'createRemote']
         add: ['replaceInterpolation', 'createRemote', 'add']
         commit: ['add', 'commit']
         push: ['commit', 'push']
-        chdir: ['push', 'chdir']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
@@ -123,11 +122,10 @@ describe 'cli', ->
         findInterpolation: ['clone', 'findInterpolation']
         replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
         createRepo: 'createRepo'
-        createRemote: ['createRepo', 'createRemote']
+        createRemote: ['clone', 'createRepo', 'createRemote']
         add: ['replaceInterpolation', 'createRemote', 'add']
         commit: ['add', 'commit']
         push: ['commit', 'push']
-        chdir: ['push', 'chdir']
       , sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
