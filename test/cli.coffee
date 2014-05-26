@@ -93,6 +93,7 @@ describe 'cli', ->
       chdir: 'chdir'
     Given -> @options =
       description: 'code piece'
+      user: 'quux:baz'
     Given -> @async.auto = sinon.stub()
 
     context 'no error', ->
@@ -131,6 +132,8 @@ describe 'cli', ->
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
+      And -> expect(@options.user).to.equal 'quux'
+      And -> expect(@options.pass).to.equal 'baz'
       And -> expect(@options.type).to.equal 'foo'
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options

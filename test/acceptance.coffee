@@ -34,7 +34,9 @@ describe 'acceptance', ->
   Given -> @request.post = sinon.stub()
   Given -> sinon.stub process, 'chdir'
   Given -> sinon.stub process, 'exit'
-  Given -> @request.get.withArgs('https://registry.npmjs.org/tinder-template/latest', sinon.match.func).callsArgWith 1, null, 'res',
+  Given -> @request.get.withArgs('https://registry.npmjs.org/tinder-template/latest', sinon.match.func).callsArgWith 1, null,
+    statusCode: 200
+  ,
     homepage: 'https://github.com/tandrewnichols/tinder-template'
   Given -> @request.post.withArgs('https://api.github.com/user/repos',
     json:
@@ -45,6 +47,7 @@ describe 'acceptance', ->
       has_issues: true
     auth:
       user: 'tandrewnichols'
+      pass: 'blahblah'
   , sinon.match.func).callsArgWith 2, null, 'res',
     html_url: "https://github.com/tandrewnichols/#{@repo}"
     clone_url: "git@github.com:tandrewnichols/#{@repo}.git"
@@ -71,6 +74,7 @@ describe 'acceptance', ->
   , sinon.match.func).callsArgWith 2, null, {}, null
   Given -> @options =
     user: 'tandrewnichols'
+    pass: 'blahblah'
     description: 'A test repository'
     interpolate: _.templateSettings.interpolate.source
     evaluate: _.templateSettings.evaluate.source

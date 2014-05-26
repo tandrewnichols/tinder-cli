@@ -34,20 +34,35 @@ describe 'utils', ->
       Given -> @request.get = sinon.stub()
       Given -> @options =
         template: 'bar'
+        user: 'foo'
       context 'npm error', ->
         Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, 'error', null, null
         When -> @fn = @subject.create @options
         And -> @fn.getGithubUrl @cb
         Then -> expect(@cb).to.have.been.calledWith 'error', null
 
-      context 'npm timeout', ->
-        Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null, null, null
-        When -> @fn = @subject.create @options
-        And -> @fn.getGithubUrl @cb
-        Then -> expect(@cb).to.have.been.calledWith 'https://registry.npmjs.org timed out processing the request', null
+      context 'non-200', ->
+        context '404', ->
+          Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null,
+            statusCode: 404
+          , {}
+          When -> @fn = @subject.create @options
+          And -> @fn.getGithubUrl @cb
+          Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
 
-      context 'success', ->
-        Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null, null, {homepage: 'https://github.com/foo/bar'}
+        context 'non-404', ->
+          Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null,
+            statusCode: 401
+          , {}
+          When -> @fn = @subject.create @options
+          And -> @fn.getGithubUrl @cb
+          Then -> expect(@cb).to.have.been.calledWith 'https://registry.npmjs.org/bar/latest responded with status code 401', null
+
+      context '200', ->
+        Given -> @request.get.withArgs('https://registry.npmjs.org/bar/latest', sinon.match.func).callsArgWith 1, null,
+          statusCode: 200
+        ,
+          homepage: 'https://github.com/foo/bar'
         When -> @fn = @subject.create @options
         And -> @fn.getGithubUrl @cb
         Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
@@ -186,9 +201,11 @@ describe 'utils', ->
           has_issues: true
         auth:
           user: 'theBigFoo'
+          pass: 'bigfoo57'
       , sinon.match.func).callsArgWith 2, 'error', null, null
       Given -> @options =
         user: 'theBigFoo'
+        pass: 'bigfoo57'
         repoName: 'repo'
         description: 'a repo'
         private: true
@@ -209,6 +226,7 @@ describe 'utils', ->
             has_issues: true
           auth:
             user: 'theBigFoo'
+            pass: 'bigfoo57'
         , sinon.match.func).callsArgWith 2, null, 'res',
           html_url: 'http://github.com/foo/bar'
           some:
@@ -217,6 +235,7 @@ describe 'utils', ->
             github: 'returns'
         Given -> @options =
           user: 'theBigFoo'
+          pass: 'bigfoo57'
           repoName: 'repo'
           description: 'a repo'
           private: true
@@ -242,6 +261,7 @@ describe 'utils', ->
             has_issues: false
           auth:
             user: 'theBigFoo'
+            pass: 'bigfoo57'
         , sinon.match.func).callsArgWith 2, null, 'res',
           html_url: 'http://github.com/pizza/delivery'
           some:
@@ -250,6 +270,7 @@ describe 'utils', ->
             github: 'returns'
         Given -> @options =
           user: 'theBigFoo'
+          pass: 'bigfoo57'
           repoName: 'repo'
           description: 'a repo'
           private: false

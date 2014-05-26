@@ -8,15 +8,9 @@ var program = require('commander'),
 
 program
   .version(require('./package').version)
-  .usage('<command> <name> [options]');
-
-program.name = 'tinder';
-
-program
-  .command('new <name> <template>')
-  .alias('mk')
-  .description('Initialize new project <name> based on <template>')
+  .usage('<command> <name> [options]')
   .option('-u, --user <username>', 'Github username')
+  .option('-p, --pass', 'Github password')
   .option('-d, --description <description>', 'Description of the project')
   .option('-v, --vars <json>', 'Additional variables for template interpolation', coercion.obj, {})
   .option('-i, --interpolate <value>', 'Underscore interpolate pattern', _.templateSettings.interpolate.source)
@@ -25,7 +19,20 @@ program
   .option('-c, --no-clean', 'Do not rm -rf on a faiure')
   .option('-p, --private', 'Create a private github repo')
   .option('-w, --no-wiki', 'Do not create a github wiki')
-  .option('-I, --no-issues', 'Do not create a github issues page')
+  .option('-I, --no-issues', 'Do not create a github issues page');
+
+program.name = 'tinder';
+
+program
+  .command('new <name> <template>')
+  .alias('mk')
+  .description('Initialize new project <name> based on <template>')
+  .action(cli.create);
+
+program
+  .command('* <name> <template>')
+  .usage('tinder <name> <template>')
+  .description('Shortcut for "new"')
   .action(cli.create);
 
 program.parse(process.argv);
