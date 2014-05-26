@@ -137,12 +137,12 @@ describe 'utils', ->
     Given -> @fs.readFile = sinon.stub()
     Given -> @fn = @subject.replace './foo', {}
     context 'error', ->
-      Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, 'error', null
+      Given -> @fs.readFile.withArgs('./foo', 'utf8', sinon.match.func).callsArgWith 2, 'error', null
       When -> @fn.read @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
     context 'no error', ->
-      Given -> @fs.readFile.withArgs('./foo', sinon.match.func).callsArgWith 1, null, 'data'
+      Given -> @fs.readFile.withArgs('./foo', 'utf8', sinon.match.func).callsArgWith 2, null, 'data'
       When -> @fn.read @cb
       Then -> expect(@cb).to.have.been.calledWith null, 'data'
 

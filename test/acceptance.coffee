@@ -1,30 +1,28 @@
 fs = require 'fs'
 WordGenerator = require 'wordgenerator'
 cp = require 'child_process'
+async = require 'async'
+_ = require 'underscore'
 
-describe.skip 'acceptance', ->
+describe 'acceptance', ->
   Given (done) -> new WordGenerator { num: 2, separator: '-' }, (err, words) =>
     @repo = words
     done()
   afterEach (done) ->
-    console.log('running afterEach')
     rm = cp.spawn "rm", ["-rf", @repo], { cwd: "#{__dirname}/..", stdio: 'inherit' }
     rm.on 'close', ->
       done()
-  afterEach (done) -> process.chdir.restore()
+  afterEach -> process.chdir.restore()
+  afterEach -> process.exit.restore()
   Given (done) -> fs.mkdir "#{@repo}", done
   Given (done) -> fs.writeFile "#{@repo}/blah.js", """
     module.exports = {
       repoName: 'This repo is called <%= repoName %>',
       foo: 'It was create with var "foo" = "<%= foo %>"',
-      baz: '<% baz.split(",").join("|") %>'
+      baz: '<% print(baz.split(",").join("|")) %>'
     };
     """
   , done
-  #Given (done) ->
-    #tree = cp.spawn('tree', ['-I', 'node_modules'], { stdio: 'inherit' })
-    #tree.on 'close', ->
-      #done()
   Given -> @request =
     '@global': true
   Given -> @cp =
@@ -35,6 +33,7 @@ describe.skip 'acceptance', ->
   Given -> @request.get = sinon.stub()
   Given -> @request.post = sinon.stub()
   Given -> sinon.stub process, 'chdir'
+  Given -> sinon.stub process, 'exit'
   Given -> @request.get.withArgs('https://registry.npmjs.org/tinder-template/latest', sinon.match.func).callsArgWith 1, null, 'res',
     homepage: 'https://github.com/tandrewnichols/tinder-template'
   Given -> @request.post.withArgs('https://api.github.com/user/repos',
@@ -46,7 +45,7 @@ describe.skip 'acceptance', ->
       has_issues: true
     auth:
       user: 'tandrewnichols'
-  , sinon.match.func).callsArgWith 1, null, 'res',
+  , sinon.match.func).callsArgWith 2, null, 'res',
     html_url: "https://github.com/tandrewnichols/#{@repo}"
     clone_url: "git@github.com:tandrewnichols/#{@repo}.git"
   Given -> @cp.exec = sinon.stub()
@@ -73,15 +72,21 @@ describe.skip 'acceptance', ->
   Given -> @options =
     user: 'tandrewnichols'
     description: 'A test repository'
+    interpolate: _.templateSettings.interpolate.source
+    evaluate: _.templateSettings.evaluate.source
+    escape: _.templateSettings.escape.source
+    private: false
+    wiki: true
+    issues: true
     vars:
       foo: 'bar'
       baz: 'q,u,u,x'
-  #When -> @cli.create @repo, 'tinder-template', @options
   When (done) ->
-    tinder = cp.spawn 'tinder', ['new', @repo, 'tinder-template', '-u', 'tandrewnichols', '-d', 'A test repository', '-v', '{"foo": "bar", "baz": "q,u,u,x"}'], { stdio: 'inherit' }
-    tinder.on 'close', ->
-      done()
-  And -> console.log 'second When';@blah = require "../#{@repo}/blah"
+    @cli.create @repo, 'tinder-template', @options
+    async.whilst (-> !process.exit.getCall(0)),
+      ((cb) -> setTimeout(cb, 200)),
+      done
+  And -> @blah = require "../#{@repo}/blah"
   Then ->
     expect(@blah.repoName).to.equal "This repo is called #{@repo}"
     expect(@blah.foo).to.equal 'It was created with var "foo" = "bar"'
