@@ -215,6 +215,32 @@ describe 'utils', ->
       When -> @fn.createRepo @cb
       Then -> expect(@cb).to.have.been.calledWith 'error'
 
+    context 'non-200 response', ->
+      Given -> @request.post.withArgs('https://api.github.com/user/repos',
+        json:
+          name: 'repo'
+          description: 'a repo'
+          private: true
+          has_wiki: true
+          has_issues: true
+        auth:
+          user: 'theBigFoo'
+          pass: 'bigfoo57'
+      , sinon.match.func).callsArgWith 2, null,
+        statusCode: 418
+      , null
+      Given -> @options =
+        user: 'theBigFoo'
+        pass: 'bigfoo57'
+        repoName: 'repo'
+        description: 'a repo'
+        private: true
+        wiki: true
+        issues: true
+      Given -> @fn = @subject.create @options
+      When -> @fn.createRepo @cb
+      Then -> expect(@cb).to.have.been.calledWith 'https://api.github.com/user/repos responded with status code 418', null
+
     context 'no error', ->
       context 'private, wiki, issues', ->
         Given -> @request.post.withArgs('https://api.github.com/user/repos',
@@ -227,7 +253,9 @@ describe 'utils', ->
           auth:
             user: 'theBigFoo'
             pass: 'bigfoo57'
-        , sinon.match.func).callsArgWith 2, null, 'res',
+        , sinon.match.func).callsArgWith 2, null,
+          statusCode: 200
+        ,
           html_url: 'http://github.com/foo/bar'
           some:
             fake: 'stuff'
@@ -262,7 +290,9 @@ describe 'utils', ->
           auth:
             user: 'theBigFoo'
             pass: 'bigfoo57'
-        , sinon.match.func).callsArgWith 2, null, 'res',
+        , sinon.match.func).callsArgWith 2, null,
+          statusCode: 200
+        ,
           html_url: 'http://github.com/pizza/delivery'
           some:
             fake: 'stuff'

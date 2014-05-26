@@ -48,7 +48,9 @@ describe 'acceptance', ->
     auth:
       user: 'tandrewnichols'
       pass: 'blahblah'
-  , sinon.match.func).callsArgWith 2, null, 'res',
+  , sinon.match.func).callsArgWith 2, null,
+    statusCode: 200
+  ,
     html_url: "https://github.com/tandrewnichols/#{@repo}"
     clone_url: "git@github.com:tandrewnichols/#{@repo}.git"
   Given -> @cp.exec = sinon.stub()
