@@ -1,6 +1,6 @@
 fs = require 'fs'
 WordGenerator = require 'wordgenerator'
-cp = require 'child_process'
+spawn = require('child_process').spawn
 async = require 'async'
 _ = require 'underscore'
 EventEmitter = require('events').EventEmitter
@@ -10,7 +10,7 @@ describe.skip 'acceptance', ->
     @repo = words
     done()
   afterEach (done) ->
-    rm = cp.spawn "rm", ["-rf", @repo], { cwd: "#{__dirname}/..", stdio: 'inherit' }
+    rm = spawn "rm", ["-rf", @repo], { cwd: "#{__dirname}/..", stdio: 'inherit' }
     rm.on 'close', ->
       done()
   afterEach -> process.chdir.restore()
@@ -57,6 +57,7 @@ describe.skip 'acceptance', ->
     html_url: "https://github.com/tandrewnichols/#{@repo}"
     clone_url: "git@github.com:tandrewnichols/#{@repo}.git"
   Given -> @cp.spawn = sinon.stub()
+  #Given -> @cp.spawn.withArgs('grep', ['-rlP', sinon.match.string, "./#{@repo}"])
   Given -> @clone = new EventEmitter()
   Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:tandrewnichols/tinder-template.git', @repo],
     stdio: 'inherit'
