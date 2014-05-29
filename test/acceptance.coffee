@@ -5,7 +5,7 @@ async = require 'async'
 _ = require 'underscore'
 EventEmitter = require('events').EventEmitter
 
-describe.skip 'acceptance', ->
+describe 'acceptance', ->
   Given (done) -> new WordGenerator { num: 2, separator: '-' }, (err, words) =>
     @repo = words
     done()
@@ -56,32 +56,19 @@ describe.skip 'acceptance', ->
   ,
     html_url: "https://github.com/tandrewnichols/#{@repo}"
     clone_url: "git@github.com:tandrewnichols/#{@repo}.git"
-  Given -> @cp.spawn = sinon.stub()
-  #Given -> @cp.spawn.withArgs('grep', ['-rlP', sinon.match.string, "./#{@repo}"])
   Given -> @clone = new EventEmitter()
-  Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:tandrewnichols/tinder-template.git', @repo],
-    stdio: 'inherit'
-  ).returns @clone
   Given -> @remote = new EventEmitter()
-  Given -> @cp.spawn.withArgs('git', ['remote', 'set-url', 'origin', "git@github.com:tandrewnichols/#{@repo}.git"],
-    stdio: 'inherit'
-    cwd: "./#{@repo}"
-  ).returns @remote
   Given -> @add = new EventEmitter()
-  Given -> @cp.spawn.withArgs('git', ['add', '.'],
-    stdio: 'inherit'
-    cwd: "./#{@repo}"
-  ).returns @add
   Given -> @commit = new EventEmitter()
-  Given -> @cp.spawn.withArgs('git', ['commit', '-m', 'Initial commit using tinder template tinder-template'],
-    stdio: 'inherit'
-    cwd: "./#{@repo}"
-  ).returns @commit
   Given -> @push = new EventEmitter()
-  Given -> @cp.spawn.withArgs('git', ['push', 'origin', 'master'],
-    stdio: 'inherit'
-    cwd: "./#{@repo}"
-  ).returns @push
+  Given -> sinon.stub @cp, 'spawn', (cmd, args, opts) =>
+    switch "#{cmd} #{args.join(' ')}"
+      when "git clone git@github.com:tandrewnichols/tinder-template.git #{@repo}" then @clone
+      when "git remote set-url origin git@github.com:tandrewnichols/#{@repo}.git" then @remote
+      when "git add ." then @add
+      when "git commit -m Initial commit using tinder template tinder-template" then @commit
+      when "git push origin master" then @push
+      else spawn.apply(null, arguments)
   Given -> @options =
     user: 'tandrewnichols'
     pass: 'blahblah'
@@ -97,16 +84,20 @@ describe.skip 'acceptance', ->
       baz: 'q,u,u,x'
   When (done) ->
     emitters = [@clone, @remote, @add, @commit, @push]
+    removed = []
     @cli.create @repo, 'tinder-template', @options
+    # Wait for process.exit to be called
     async.whilst (-> !process.exit.getCall(0)),
-      ((cb) => setTimeout((=>
-        for emitter in emitters
-          if emitter and emitter.listeners
-            emitters = _(emitters).without(emitter)
-            emitter.emit('close', 0)
-        cb()
-      ), 200)),
-      done
+      ((cb) =>
+        setTimeout ( =>
+          async.each _(emitters).without(removed), ((e, n) ->
+            if e and e.listeners
+              removed.push(e)
+              e.emit('close', 0)
+            n()
+          ), cb
+        ), 200
+      ),done
   And -> @blah = require "../#{@repo}/blah"
   Then ->
     expect(@blah.repoName).to.equal "This repo is called #{@repo}"
