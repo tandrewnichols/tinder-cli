@@ -70,11 +70,9 @@ describe 'utils', ->
   describe '.clone', ->
     Given -> @clone = new EventEmitter()
     Given -> @cb = sinon.spy()
-    Given -> @options =
-      repoName: 'pizza'
-    Given -> @fn = @subject.create @options
+    Given -> @fn = @subject.create {}
     Given -> @cp.spawn = sinon.stub()
-    Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:foo/bar.git', 'pizza'],
+    Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:foo/bar.git'],
       stdio: 'inherit'
     ).returns @clone
 
@@ -82,13 +80,38 @@ describe 'utils', ->
       When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       And -> @clone.emit('close', 1)
-      Then -> expect(@cb).to.have.been.calledWith 'git clone git@github.com:foo/bar.git pizza returned code 1'
+      Then -> expect(@cb).to.have.been.calledWith 'git clone git@github.com:foo/bar.git returned code 1'
 
     context 'no error', ->
       When -> @fn.clone @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       And -> @clone.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
+
+  describe '.copy', ->
+    Given -> @copy = new EventEmitter()
+    Given -> @cb = sinon.spy()
+    Given -> @options =
+      repoName: 'world'
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('cp', ['-Ri', 'hello/template', 'world'],
+      stdio: 'inherit'
+    ).returns @copy
+    Given -> @fn = @subject.create @options
+
+    context 'error', ->
+      When -> @fn.copy @cb,
+        getGithubUrl: 'git@github.com:say/hello.git'
+      And -> @copy.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'cp -Ri hello/template world returned code 1'
+      And -> expect(@options.clonedDir).to.equal 'hello'
+
+    context 'no error', ->
+      When -> @fn.copy @cb,
+        getGithubUrl: 'git@github.com:say/hello.git'
+      And -> @copy.emit('close', 0)
+      Then -> expect(@cb).to.have.been.called
+      And -> expect(@options.clonedDir).to.equal 'hello'
 
   describe '.findInterpolation', ->
     Given -> @cb = sinon.spy()
@@ -402,3 +425,24 @@ describe 'utils', ->
       When -> @fn.push @cb
       And -> @push.emit('close', 1)
       Then -> expect(@cb).to.have.been.calledWith 'git push origin master returned code 1'
+
+  describe '.cleanup', ->
+    Given -> @rm = new EventEmitter()
+    Given -> @cb = sinon.spy()
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('rm', ['-rf', 'neverland'],
+      stdio: 'inherit'
+    ).returns @rm
+    Given -> @options =
+      clonedDir: 'neverland'
+    Given -> @fn = @subject.create @options
+
+    context 'error', ->
+      When -> @fn.cleanup @cb
+      And -> @rm.emit('close', 1)
+      Then -> expect(@cb).to.have.been.calledWith 'Unable to delete temporary directory ./neverland'
+
+    context 'no error', ->
+      When -> @fn.cleanup @cb
+      And -> @rm.emit('close', 0)
+      Then -> expect(@cb).to.have.been.called

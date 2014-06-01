@@ -83,6 +83,7 @@ describe 'cli', ->
     Given -> @utils.create.returns
       getGithubUrl: 'getGithubUrl'
       clone: 'clone'
+      copy: 'copy'
       findInterpolation: 'findInterpolation'
       replaceInterpolation: 'replaceInterpolation'
       createRepo: 'createRepo'
@@ -90,7 +91,7 @@ describe 'cli', ->
       add: 'add'
       commit: 'commit'
       push: 'push'
-      chdir: 'chdir'
+      cleanup: 'cleanup'
     Given -> @options =
       description: 'code piece'
       user: 'quux:baz'
@@ -100,13 +101,15 @@ describe 'cli', ->
       Given -> @async.auto.withArgs(
         getGithubUrl: 'getGithubUrl'
         clone: ['getGithubUrl', 'clone']
-        findInterpolation: ['clone', 'findInterpolation']
+        copy: ['clone', 'copy']
+        findInterpolation: ['copy', 'findInterpolation']
         replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
         createRepo: 'createRepo'
-        createRemote: ['clone', 'createRepo', 'createRemote']
+        createRemote: ['copy', 'createRepo', 'createRemote']
         add: ['replaceInterpolation', 'createRemote', 'add']
         commit: ['add', 'commit']
         push: ['commit', 'push']
+        cleanup: ['copy', 'cleanup']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
@@ -119,13 +122,15 @@ describe 'cli', ->
       Given -> @async.auto.withArgs(
         getGithubUrl: 'getGithubUrl'
         clone: ['getGithubUrl', 'clone']
-        findInterpolation: ['clone', 'findInterpolation']
+        copy: ['clone', 'copy']
+        findInterpolation: ['copy', 'findInterpolation']
         replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
         createRepo: 'createRepo'
-        createRemote: ['clone', 'createRepo', 'createRemote']
+        createRemote: ['copy', 'createRepo', 'createRemote']
         add: ['replaceInterpolation', 'createRemote', 'add']
         commit: ['add', 'commit']
         push: ['commit', 'push']
+        cleanup: ['copy', 'cleanup']
       , sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
