@@ -4,12 +4,14 @@ describe 'cli', ->
   Given -> @utils = {}
   Given -> @cp = {}
   Given -> @async = {}
-  Given -> @tilde = {}
+  Given -> @fs = {}
+  Given -> @tinder = sinon.stub()
   Given -> @subject = sandbox '../lib/cli',
     child_process: @cp
     './utils': @utils
     async: @async
-    'tilde-expansion': @tilde
+    'tilde-expansion': @tinder
+    fs: @fs
 
   describe '.cleanup', ->
     Given -> sinon.spy console, 'log'
@@ -144,4 +146,20 @@ describe 'cli', ->
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options
 
   #describe '.register', ->
-    #Given -> 
+    #Given -> @tilde.withArgs('~/.tinder.json', sinon.match.func).callsArgWith 1, '/Users/anichols'
+    #Given -> @fs.write = sinon.stub()
+    #Given -> @fs.exists = sinon.stub()
+    #afterEach -> @subject.exit.restore()
+    #Given -> sinon.stub @subject, 'exit'
+
+    #context '.tinder.json does not exist', ->
+      #Given -> @fs.exists.withArgs('/Users/anichols
+
+    #context 'user', ->
+      #Given -> @options =
+        #user: 'goldilocks'
+      #Given -> @fs.write.withArgs('/Users/anichols/tinder.json',
+        #user: 'goldilocks'
+      #, sinon.match.func).callsArgWith 2, null
+      #When -> @subject.register @options
+      #Then -> expect(@subject.exit).to.have.been.called

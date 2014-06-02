@@ -33,6 +33,7 @@ program
 program
   .command('config')
   .description('Register options for later re-use')
+  .option('-c --config <file>', 'Config file in which to save options')
   .option('-u --user <username>', 'Register github username')
   .option('-v --var <name>:[type]', 'Register a variable name with a given type', coercion.vars)
   .option('-t --template <name>', 'Register a template', coercion.list)
