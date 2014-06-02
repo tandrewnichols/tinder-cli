@@ -6,7 +6,7 @@ async = require 'async'
 _ = require 'underscore'
 EventEmitter = require('events').EventEmitter
 
-describe.skip 'acceptance', ->
+describe 'acceptance', ->
   Given (done) -> new WordGenerator { num: 2, separator: '-' }, (err, words) =>
     @repo = words
     done()
@@ -61,14 +61,16 @@ describe.skip 'acceptance', ->
   Given -> @add = new EventEmitter()
   Given -> @commit = new EventEmitter()
   Given -> @push = new EventEmitter()
+  Given -> @rm = new EventEmitter()
   Given -> sinon.stub @cp, 'spawn', (cmd, args, opts) =>
     switch "#{cmd} #{args.join(' ')}"
       when "git clone git@github.com:tandrewnichols/tinder-template.git" then @clone
-      when "cp -R tinder-template #{@repo}" then @copy
+      when "cp -Ri tinder-template/template #{@repo}" then @copy
       when "git remote set-url origin git@github.com:tandrewnichols/#{@repo}.git" then @remote
       when "git add ." then @add
       when "git commit -m Initial commit using tinder template tinder-template" then @commit
       when "git push origin master" then @push
+      when "rm -rf tinder-template" then @rm
       else spawn.apply(null, arguments)
   Given -> @options =
     user: 'tandrewnichols'
@@ -99,11 +101,14 @@ describe.skip 'acceptance', ->
           ), cb
         ), 200
       ),done
+  And -> @clone.emit('close', 0)
+  And -> @copy.emit('close', 0)
+  And -> @remote.emit('close', 0)
+  And -> @add.emit('close', 0)
+  And -> @commit.emit('close', 0)
+  And -> @push.emit('close', 0)
   And -> @blah = require "../#{@repo}/blah"
-  Then (done) ->
+  Then ->
     expect(@blah.repoName).to.equal "This repo is called #{@repo}"
     expect(@blah.foo).to.equal 'It was created with var "foo" = "bar"'
     expect(@blah.baz).to.equal 'q|u|u|x'
-    fs.exists path.resolve('tinder-template'), (exists) ->
-      expect(exists).to.equal false
-      done()
