@@ -28,7 +28,8 @@
     "varity": "1.0.x",
     "async": "0.8.0",
     "underscore": "1.6.0",
-    "config-extend": "0.0.6"
+    "config-extend": "0.0.6",
+    "tilde-expansion": "0.0.0"
   },
   "devDependencies": {
     "coffee-script": "1.7.1",

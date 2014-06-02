@@ -4,10 +4,12 @@ describe 'cli', ->
   Given -> @utils = {}
   Given -> @cp = {}
   Given -> @async = {}
+  Given -> @tilde = {}
   Given -> @subject = sandbox '../lib/cli',
     child_process: @cp
     './utils': @utils
     async: @async
+    'tilde-expansion': @tilde
 
   describe '.cleanup', ->
     Given -> sinon.spy console, 'log'
@@ -140,3 +142,6 @@ describe 'cli', ->
       And -> expect(@options.type).to.equal 'foo'
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options
+
+  #describe '.register', ->
+    #Given -> 
