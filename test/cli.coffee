@@ -62,9 +62,8 @@ describe 'cli', ->
       Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Not removing ./foo'.red
 
   describe '.exit', ->
-    afterEach ->
-      console.log.restore()
-      process.exit.restore()
+    afterEach -> console.log.restore()
+    afterEach -> process.exit.restore()
     Given -> sinon.spy console, 'log'
     Given -> sinon.stub process, 'exit'
     context 'with code and message', ->
@@ -145,21 +144,27 @@ describe 'cli', ->
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options
 
-  #describe '.register', ->
-    #Given -> @tilde.withArgs('~/.tinder.json', sinon.match.func).callsArgWith 1, '/Users/anichols'
-    #Given -> @fs.write = sinon.stub()
-    #Given -> @fs.exists = sinon.stub()
-    #afterEach -> @subject.exit.restore()
-    #Given -> sinon.stub @subject, 'exit'
+  describe '.register', ->
+    afterEach -> @subject.exit.restore()
+    Given -> sinon.stub @subject, 'exit'
+    Given -> sinon.stub @utils, 'register'
+    Given -> @config = sinon.stub()
+    Given -> @utils.register.returns
+      fetch: 'fetch'
+    Given -> @async.auto = sinon.stub()
 
-    #context '.tinder.json does not exist', ->
-      #Given -> @fs.exists.withArgs('/Users/anichols
+    context 'error reading config', ->
+      Given -> @options = {}
+      Given -> @async.auto.withArgs(
+        fetch: 'fetch'
+      , sinon.match.func).callsArgWith 1, 'No soup for you!'
+      When -> @subject.register @options
+      Then -> expect(@subject.exit).to.have.been.calledWith 1, 'No soup for you!'
 
-    #context 'user', ->
-      #Given -> @options =
-        #user: 'goldilocks'
-      #Given -> @fs.write.withArgs('/Users/anichols/tinder.json',
-        #user: 'goldilocks'
-      #, sinon.match.func).callsArgWith 2, null
-      #When -> @subject.register @options
-      #Then -> expect(@subject.exit).to.have.been.called
+    context 'no error', ->
+      Given -> @options = 'At least we have options'
+      Given -> @async.auto.withArgs(
+        fetch: 'fetch'
+      , sinon.match.func).callsArgWith 1, null
+      When -> @subject.register @options
+      Then -> expect(@subject.exit).to.have.been.calledWith()

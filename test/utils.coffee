@@ -8,11 +8,26 @@ describe 'utils', ->
   Given -> @cp = {}
   Given -> @fs = {}
   Given -> @async = {}
+  Given -> @fakeConfig =
+    '@noCallThru': true
   Given -> @subject = sandbox '../lib/utils',
     request: @request
     child_process: @cp
     fs: @fs
     async: @async
+    '/foo/bar': @fakeConfig
+
+  describe '.create', ->
+    When -> @obj = @subject.create {}
+    Then -> expect(@obj).to.have.functions 'getGithubUrl', 'clone', 'copy', 'findInterpolation', 'replaceInterpolation', 'createRepo', 'createRemote', 'add', 'commit', 'push', 'cleanup'
+
+  describe '.replace', ->
+    When -> @obj = @subject.replace 'foo', {}
+    Then -> expect(@obj).to.have.functions 'read', 'replace', 'write'
+
+  describe '.register', ->
+    When -> @obj = @subject.register {}
+    Then -> expect(@obj).to.have.functions 'fetch'
 
   describe '.getGithubUrl', ->
     Given -> @cb = sinon.spy()
@@ -446,3 +461,19 @@ describe 'utils', ->
       When -> @fn.cleanup @cb
       And -> @rm.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
+
+  describe '.fetch', ->
+    Given -> @cb = sinon.stub()
+
+    context 'with config specified', ->
+      Given -> @options =
+        config: '/foo/bar'
+      Given -> @fakeConfig.foo = 'data'
+      When -> @fn = @subject.register @options
+      And -> @fn.fetch @cb
+      Then -> expect(@cb).to.have.been.calledWith null,
+        '@noCallThru': true
+        foo: 'data'
+
+    #context 'with no config specified', ->
+      #Given -> @options =
