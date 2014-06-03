@@ -10,24 +10,26 @@ describe 'utils', ->
   Given -> @async = {}
   Given -> @fakeConfig =
     '@noCallThru': true
+  Given -> @tilde = sinon.stub()
   Given -> @subject = sandbox '../lib/utils',
     request: @request
     child_process: @cp
     fs: @fs
     async: @async
     '/foo/bar': @fakeConfig
+    'tilde-expansion': @tilde
 
   describe '.create', ->
     When -> @obj = @subject.create {}
-    Then -> expect(@obj).to.have.functions 'getGithubUrl', 'clone', 'copy', 'findInterpolation', 'replaceInterpolation', 'createRepo', 'createRemote', 'add', 'commit', 'push', 'cleanup'
+    Then -> expect(@obj).to.have.functions ['getGithubUrl', 'clone', 'copy', 'findInterpolation', 'replaceInterpolation', 'createRepo', 'createRemote', 'add', 'commit', 'push', 'cleanup']
 
   describe '.replace', ->
     When -> @obj = @subject.replace 'foo', {}
-    Then -> expect(@obj).to.have.functions 'read', 'replace', 'write'
+    Then -> expect(@obj).to.have.functions ['read', 'replace', 'write']
 
   describe '.register', ->
-    When -> @obj = @subject.register {}
-    Then -> expect(@obj).to.have.functions 'fetch'
+    When -> @obj = @subject.config {}
+    Then -> expect(@obj).to.have.functions ['fetch', 'update']
 
   describe '.getGithubUrl', ->
     Given -> @cb = sinon.spy()
@@ -469,11 +471,22 @@ describe 'utils', ->
       Given -> @options =
         config: '/foo/bar'
       Given -> @fakeConfig.foo = 'data'
-      When -> @fn = @subject.register @options
+      When -> @fn = @subject.config @options
       And -> @fn.fetch @cb
       Then -> expect(@cb).to.have.been.calledWith null,
         '@noCallThru': true
         foo: 'data'
 
-    #context 'with no config specified', ->
-      #Given -> @options =
+    context 'with no config specified', ->
+      Given -> @tilde.withArgs('~/.tinder.json', sinon.match.func).callsArgWith 1, '/foo/bar'
+      Given -> @fakeConfig.foo = 'data'
+      When -> @fn = @subject.config {}
+      And -> @fn.fetch @cb
+      Then -> expect(@cb).to.have.been.calledWith null,
+        '@noCallThru': true
+        foo: 'data'
+
+  describe '.update', ->
+    Given -> @cb = sinon.stub()
+    Given -> @options =
+      user: 'goldilocks'

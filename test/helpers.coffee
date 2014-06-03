@@ -2,7 +2,7 @@ global.sinon = require 'sinon'
 global.expect = require('indeed').expect
 indeed = require('indeed').indeed
 indeed.mixin
-  functions: (conditions...) ->
+  functions: (conditions) ->
     (val) ->
       _(conditions).every (condition) ->
         typeof val[condition] == 'function'

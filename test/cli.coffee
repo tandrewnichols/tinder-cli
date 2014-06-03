@@ -147,16 +147,18 @@ describe 'cli', ->
   describe '.register', ->
     afterEach -> @subject.exit.restore()
     Given -> sinon.stub @subject, 'exit'
-    Given -> sinon.stub @utils, 'register'
+    Given -> sinon.stub @utils, 'config'
     Given -> @config = sinon.stub()
-    Given -> @utils.register.returns
+    Given -> @utils.config.returns
       fetch: 'fetch'
+      update: 'update'
     Given -> @async.auto = sinon.stub()
 
     context 'error reading config', ->
       Given -> @options = {}
       Given -> @async.auto.withArgs(
         fetch: 'fetch'
+        update: ['fetch', 'update']
       , sinon.match.func).callsArgWith 1, 'No soup for you!'
       When -> @subject.register @options
       Then -> expect(@subject.exit).to.have.been.calledWith 1, 'No soup for you!'
@@ -165,6 +167,7 @@ describe 'cli', ->
       Given -> @options = 'At least we have options'
       Given -> @async.auto.withArgs(
         fetch: 'fetch'
+        update: ['fetch', 'update']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.register @options
       Then -> expect(@subject.exit).to.have.been.calledWith()
