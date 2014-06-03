@@ -490,3 +490,4 @@ describe 'utils', ->
     Given -> @cb = sinon.stub()
     Given -> @options =
       user: 'goldilocks'
+      template: 'foo/bar'

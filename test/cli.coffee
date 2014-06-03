@@ -48,7 +48,7 @@ describe 'cli', ->
           process.cwd.restore()
         Given -> sinon.stub(process, 'cwd').returns '/blah/blah/blah'
         Given -> @cp.exec.callsArgWith 1, null, 'stdout', null
-        When -> @subject.cleanup 'The last lights of the black west went', @options
+        When -> @subject.cleanup 'The last lights off the black west went', @options
         Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Removed foo'
 
     context 'no clean', ->
@@ -157,8 +157,8 @@ describe 'cli', ->
     context 'error reading config', ->
       Given -> @options = {}
       Given -> @async.auto.withArgs(
-        fetch: 'fetch'
-        update: ['fetch', 'update']
+        config: 'fetch'
+        update: ['config', 'update']
       , sinon.match.func).callsArgWith 1, 'No soup for you!'
       When -> @subject.register @options
       Then -> expect(@subject.exit).to.have.been.calledWith 1, 'No soup for you!'
@@ -166,8 +166,8 @@ describe 'cli', ->
     context 'no error', ->
       Given -> @options = 'At least we have options'
       Given -> @async.auto.withArgs(
-        fetch: 'fetch'
-        update: ['fetch', 'update']
+        config: 'fetch'
+        update: ['config', 'update']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.register @options
       Then -> expect(@subject.exit).to.have.been.calledWith()
