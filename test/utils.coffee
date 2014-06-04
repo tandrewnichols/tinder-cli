@@ -488,8 +488,38 @@ describe 'utils', ->
         '@noCallThru': true
         foo: 'data'
 
-  describe '.update', ->
+    context 'config does not exist', ->
+      Given -> @options =
+        config: '/bar/foo'
+      Given -> @fs.exists.withArgs('/bar/foo', sinon.match.func).callsArgWith 1, false
+      When -> @fn = @subject.config @options
+      And -> @fn.fetch @cb
+      Then -> expect(@cb).to.have.been.calledWith null, {}
+
+  describe.skip '.update', ->
     Given -> @cb = sinon.stub()
+    Given -> @data =
+      config: {}
     Given -> @options =
       user: 'goldilocks'
-      template: 'foo/bar'
+      template: ['bar:foo/bar']
+      vars:
+        type: []
+      interpolate: 'interpolate'
+      evaluate: 'evaluate'
+      escape: 'escape'
+    When -> @fn = @subject.config @options
+    And -> @fn.update @cb, @data
+    Then -> expect(@data.config).to.deep.equal
+      user: 'goldilocks'
+      vars: []
+      templates:
+        bar:
+          name: 'foo/bar'
+          url: 'git@github.com:foo/bar.git'
+          vars:
+            type: []
+      interpolate: 'interpolate'
+      evaluate: 'evaluate'
+      escape: 'escape'
+
