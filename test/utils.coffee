@@ -466,6 +466,8 @@ describe 'utils', ->
 
   describe '.fetch', ->
     Given -> @cb = sinon.stub()
+    Given -> @fs.exists = sinon.stub()
+    Given -> @fs.exists.withArgs('/foo/bar', sinon.match.func).callsArgWith 1, true
 
     context 'with config specified', ->
       Given -> @options =
