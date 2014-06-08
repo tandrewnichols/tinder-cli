@@ -36,7 +36,7 @@ program
   .option('-c --config <file>', 'Config file in which to save options')
   .option('-u --user <username>', 'Register github username')
   .option('-v --var <name>:[type]', 'Register a variable name with a given type', coercion.vars)
-  .option('-t --template <name>', 'Register a template', coercion.list)
+  .option('-t --template [key]:<owner>/<package>', 'Register a template', coercion.list, [])
   .option('-i --interpolate <value>', 'Register an underscore interpolate pattern', _.templateSettings.interpolate.source)
   .option('-e --evaluate <pattern>', 'Register an underscore evaluate pattern', _.templateSettings.evaluate.source)
   .option('-E --escape <pattern>', 'Register an underscore escape pattern', _.templateSettings.escape.source)

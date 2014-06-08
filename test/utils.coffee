@@ -496,30 +496,94 @@ describe 'utils', ->
       And -> @fn.fetch @cb
       Then -> expect(@cb).to.have.been.calledWith null, {}
 
-  describe.skip '.update', ->
+  describe.skip '.mapRemotes', ->
+    Given -> @options =
+      template: [
+        key: 'bar'
+        name: 'foo/bar'
+      ,
+        key: 'quux'
+        name: 'baz/quux'
+      ]
+    Given -> @cb = sinon.spy()
+    #When -> 
+
+  describe '.update', ->
     Given -> @cb = sinon.stub()
     Given -> @data =
       config: {}
-    Given -> @options =
-      user: 'goldilocks'
-      template: ['bar:foo/bar']
-      vars:
-        type: []
-      interpolate: 'interpolate'
-      evaluate: 'evaluate'
-      escape: 'escape'
-    When -> @fn = @subject.config @options
-    And -> @fn.update @cb, @data
-    Then -> expect(@data.config).to.deep.equal
-      user: 'goldilocks'
-      vars: []
-      templates:
-        bar:
-          name: 'foo/bar'
-          url: 'git@github.com:foo/bar.git'
-          vars:
-            type: []
-      interpolate: 'interpolate'
-      evaluate: 'evaluate'
-      escape: 'escape'
 
+    context 'with templates and vars', ->
+      Given -> @options =
+        user: 'goldilocks'
+        template: [
+          key: 'bar'
+          name: 'foo/bar'
+          remote: 'git@github.com:foo/bar.git'
+        ,
+          key: 'quux'
+          name: 'baz/quux'
+          remote: 'git@github.com:baz/quux.git'
+        ]
+        vars:
+          type: []
+        interpolate: 'interpolate'
+        evaluate: 'evaluate'
+        escape: 'escape'
+      When -> @fn = @subject.config @options
+      And -> @fn.update @cb, @data
+      Then -> expect(@data.config).to.deep.equal
+        user: 'goldilocks'
+        templates:
+          bar:
+            name: 'foo/bar'
+            remote: 'git@github.com:foo/bar.git'
+            vars:
+              type: []
+          quux:
+            name: 'baz/quux'
+            remote: 'git@github.com:baz/quux.git'
+            vars:
+              type: []
+        interpolate: 'interpolate'
+        evaluate: 'evaluate'
+        escape: 'escape'
+
+    context 'with templates but no vars', ->
+      Given -> @options =
+        user: 'goldilocks'
+        template: [
+          key: 'bar'
+          name: 'foo/bar'
+          remote: 'git@github.com:foo/bar.git'
+        ,
+          key: 'quux'
+          name: 'baz/quux'
+          remote: 'git@github.com:baz/quux.git'
+        ]
+      When -> @fn = @subject.config @options
+      And -> @fn.update @cb, @data
+      Then -> expect(@data.config).to.deep.equal
+        user: 'goldilocks'
+        templates:
+          bar:
+            name: 'foo/bar'
+            remote: 'git@github.com:foo/bar.git'
+            vars: {}
+          quux:
+            name: 'baz/quux'
+            remote: 'git@github.com:baz/quux.git'
+            vars: {}
+
+    context 'with no templates but vars', ->
+      Given -> @options =
+        template: []
+        vars:
+          contributors: []
+          types: {}
+      When -> @fn = @subject.config @options
+      And -> @fn.update @cb, @data
+      Then -> expect(@data.config).to.deep.equal
+        vars:
+          contributors: []
+          types: {}
