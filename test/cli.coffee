@@ -79,22 +79,20 @@ describe 'cli', ->
     afterEach ->
       @subject.cleanup.restore()
       @subject.exit.restore()
-      @utils.create.restore()
     Given -> sinon.stub @subject, 'cleanup'
     Given -> sinon.stub @subject, 'exit'
-    Given -> sinon.stub @utils, 'create'
-    Given -> @utils.create.returns
-      getGithubUrl: 'getGithubUrl'
-      clone: 'clone'
-      copy: 'copy'
-      findInterpolation: 'findInterpolation'
-      replaceInterpolation: 'replaceInterpolation'
-      createRepo: 'createRepo'
-      createRemote: 'createRemote'
-      add: 'add'
-      commit: 'commit'
-      push: 'push'
-      cleanup: 'cleanup'
+    Given -> @utils = spyObj 'getGithubUrl', 'clone', 'copy', 'findInterpolation', 'replaceInterpolation', 'createRepo', 'createRemote', 'add', 'commit', 'push', 'cleanup'
+    Given -> @utils.getGithubUrl.returns 'getGithubUrl'
+    Given -> @utils.clone.returns 'clone'
+    Given -> @utils.copy.returns 'copy'
+    Given -> @utils.findInterpolation.returns 'findInterpolation'
+    Given -> @utils.replaceInterpolation.returns 'replaceInterpolation'
+    Given -> @utils.createRepo.returns 'createRepo'
+    Given -> @utils.createRemote.returns 'createRemote'
+    Given -> @utils.add.returns 'add'
+    Given -> @utils.commit.returns 'commit'
+    Given -> @utils.push.returns 'push'
+    Given -> @utils.cleanup.returns 'cleanup'
     Given -> @options =
       description: 'code piece'
       user: 'quux:baz'

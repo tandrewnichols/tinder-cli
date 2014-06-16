@@ -42,10 +42,4 @@ program
   .option('-E --escape <pattern>', 'Register an underscore escape pattern', _.templateSettings.escape.source)
   .action(cli.register);
 
-program
-  .command('*')
-  .usage('tinder <name> <template> [description]')
-  .description('Shortcut for "new"')
-  .action(cli.create);
-
 program.parse(process.argv);
