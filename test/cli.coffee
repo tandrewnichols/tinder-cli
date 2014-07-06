@@ -1,17 +1,18 @@
 colors = require 'colors'
 
 describe 'cli', ->
-  Given -> @utils = {}
+  Given -> @git = {}
+  Given -> @bash = {}
+  Given -> @interpolation = {}
   Given -> @cp = {}
   Given -> @async = {}
   Given -> @fs = {}
-  Given -> @tinder = sinon.stub()
   Given -> @subject = sandbox '../lib/cli',
     child_process: @cp
-    './utils': @utils
     async: @async
-    'tilde-expansion': @tinder
-    fs: @fs
+    './git': @git
+    './bash': @bash
+    './interpolation': @interpolation
 
   describe '.cleanup', ->
     Given -> sinon.spy console, 'log'
