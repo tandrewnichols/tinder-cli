@@ -82,24 +82,15 @@ describe 'cli', ->
       @subject.exit.restore()
     Given -> sinon.stub @subject, 'cleanup'
     Given -> sinon.stub @subject, 'exit'
-    Given -> @utils = spyObj 'getGithubUrl', 'clone', 'copy', 'findInterpolation', 'replaceInterpolation', 'createRepo', 'createRemote', 'add', 'commit', 'push', 'cleanup'
-    Given -> @utils.getGithubUrl.returns 'getGithubUrl'
-    Given -> @utils.clone.returns 'clone'
-    Given -> @utils.copy.returns 'copy'
-    Given -> @utils.findInterpolation.returns 'findInterpolation'
-    Given -> @utils.replaceInterpolation.returns 'replaceInterpolation'
-    Given -> @utils.createRepo.returns 'createRepo'
-    Given -> @utils.createRemote.returns 'createRemote'
-    Given -> @utils.add.returns 'add'
-    Given -> @utils.commit.returns 'commit'
-    Given -> @utils.push.returns 'push'
-    Given -> @utils.cleanup.returns 'cleanup'
+    Given -> stubAll @git, ['getGithubUrl', 'clone', 'createRepo', 'createRemote', 'add', 'commit', 'push']
+    Given -> stubAll @bash, ['copy', 'cleanup']
+    Given -> stubAll @interpolation, ['find', 'iterate']
     Given -> @options =
       description: 'code piece'
       user: 'quux:baz'
     Given -> @async.auto = sinon.stub()
 
-    context 'no error', ->
+    context.only 'no error', ->
       Given -> @async.auto.withArgs(
         getGithubUrl: 'getGithubUrl'
         clone: ['getGithubUrl', 'clone']
@@ -114,6 +105,7 @@ describe 'cli', ->
         cleanup: ['copy', 'cleanup']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
+      And -> console.log @async.auto.getCall(0).args
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
@@ -143,7 +135,7 @@ describe 'cli', ->
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options
 
-  describe '.register', ->
+  xdescribe '.register', ->
     afterEach -> @subject.exit.restore()
     Given -> sinon.stub @subject, 'exit'
     Given -> sinon.stub @utils, 'config'

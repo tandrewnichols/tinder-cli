@@ -14,3 +14,13 @@ global.spyObj = (fns...) ->
     obj[fn] = sinon.stub()
     obj
   , {}
+
+global.stubAll = (obj, stubs) ->
+  if _(stubs).isArray()
+    for name in stubs
+      obj[name] = sinon.stub()
+      obj[name].returns name
+  else if _(stubs).isObject() && stubs.constructor.name == 'Object'
+    for k, v of stubs
+      obj[k] = sinon.stub()
+      obj[k].returns v

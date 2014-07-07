@@ -1,11 +1,16 @@
+EventEmitter = require('events').EventEmitter
+_ = require 'underscore'
+
 describe 'lib/interpolation', ->
   Given -> @fs = {}
   Given -> @cp = {}
+  Given -> @async = {}
   Given -> @subject = sandbox '../lib/interpolation',
     fs: @fs
-    cp: @cp
+    child_process: @cp
+    async: @async
 
-  describe '.findInterpolation', ->
+  describe '.find', ->
     Given -> @cb = sinon.spy()
     Given -> @grep = new EventEmitter()
     Given -> @grep.stdout = new EventEmitter()
@@ -16,12 +21,12 @@ describe 'lib/interpolation', ->
       escape: 'bar'
       evaluate: 'baz'
     Given -> @cp.spawn.withArgs('grep', ['-rlP', 'foo|baz|bar', './six-toed-sloth']).returns @grep
-    When -> @subject.findInterpolation @options, @cb
+    When -> @subject.find @options, @cb
     And -> @grep.stdout.emit 'data', 'foo\nbar\nbaz'
     And -> @grep.emit 'close'
     Then -> expect(@cb).to.have.been.calledWith null, ['foo', 'bar', 'baz']
 
-  describe '.replaceInterpolation', ->
+  describe '.iterate', ->
     afterEach -> @subject.replace.restore()
     Given -> sinon.stub @subject, 'replace'
     Given -> @subject.replace.returns
@@ -37,15 +42,15 @@ describe 'lib/interpolation', ->
     context 'error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, 'error'
-      When -> @subject.replaceInterpolation {}, @next,
-        findInterpolation: ['./foo', './bar']
+      When -> @subject.iterate {}, @next,
+        find: ['./foo', './bar']
       Then -> expect(@next).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, null
-      When -> @subject.replaceInterpolation {}, @next,
-        findInterpolation: ['./foo', './bar']
+      When -> @subject.iterate {}, @next,
+        find: ['./foo', './bar']
       Then -> expect(@next).to.have.been.calledWith()
 
   describe '.read', ->
