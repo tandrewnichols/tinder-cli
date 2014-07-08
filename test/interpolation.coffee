@@ -27,12 +27,7 @@ describe 'lib/interpolation', ->
     Then -> expect(@cb).to.have.been.calledWith null, ['foo', 'bar', 'baz']
 
   describe '.iterate', ->
-    afterEach -> @subject.replace.restore()
-    Given -> sinon.stub @subject, 'replace'
-    Given -> @subject.replace.returns
-      read: 'read'
-      replace: 'replace'
-      write: 'write'
+    Given -> stubAll @subject, ['read', 'replace', 'write']
     Given -> @next = sinon.spy()
     Given -> @async.each = sinon.stub()
     Given -> @cb = (err) =>

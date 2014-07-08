@@ -6,7 +6,6 @@ describe 'cli', ->
   Given -> @interpolation = {}
   Given -> @cp = {}
   Given -> @async = {}
-  Given -> @fs = {}
   Given -> @subject = sandbox '../lib/cli',
     child_process: @cp
     async: @async
@@ -90,22 +89,21 @@ describe 'cli', ->
       user: 'quux:baz'
     Given -> @async.auto = sinon.stub()
 
-    context.only 'no error', ->
+    context 'no error', ->
       Given -> @async.auto.withArgs(
         getGithubUrl: 'getGithubUrl'
         clone: ['getGithubUrl', 'clone']
         copy: ['clone', 'copy']
-        findInterpolation: ['copy', 'findInterpolation']
-        replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
+        find: ['copy', 'find']
+        iterate: ['find', 'iterate']
         createRepo: 'createRepo'
         createRemote: ['copy', 'createRepo', 'createRemote']
-        add: ['replaceInterpolation', 'createRemote', 'add']
+        add: ['iterate', 'createRemote', 'add']
         commit: ['add', 'commit']
         push: ['commit', 'push']
         cleanup: ['copy', 'cleanup']
       , sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
-      And -> console.log @async.auto.getCall(0).args
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
@@ -117,11 +115,11 @@ describe 'cli', ->
         getGithubUrl: 'getGithubUrl'
         clone: ['getGithubUrl', 'clone']
         copy: ['clone', 'copy']
-        findInterpolation: ['copy', 'findInterpolation']
-        replaceInterpolation: ['findInterpolation', 'replaceInterpolation']
+        find: ['copy', 'find']
+        iterate: ['find', 'iterate']
         createRepo: 'createRepo'
         createRemote: ['copy', 'createRepo', 'createRemote']
-        add: ['replaceInterpolation', 'createRemote', 'add']
+        add: ['iterate', 'createRemote', 'add']
         commit: ['add', 'commit']
         push: ['commit', 'push']
         cleanup: ['copy', 'cleanup']
