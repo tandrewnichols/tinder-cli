@@ -30,16 +30,16 @@ program
   .option('-I --no-issues', 'Do not create a github issues page')
   .action(cli.create);
 
-program
-  .command('config')
-  .description('Register options for later re-use')
-  .option('-c --config <file>', 'Config file in which to save options')
-  .option('-u --user <username>', 'Register github username')
-  .option('-v --var <name>:[type]', 'Register a variable name with a given type', coercion.vars)
-  .option('-t --template [key]:<owner>/<package>', 'Register a template', coercion.list, [])
-  .option('-i --interpolate <value>', 'Register an underscore interpolate pattern', _.templateSettings.interpolate.source)
-  .option('-e --evaluate <pattern>', 'Register an underscore evaluate pattern', _.templateSettings.evaluate.source)
-  .option('-E --escape <pattern>', 'Register an underscore escape pattern', _.templateSettings.escape.source)
-  .action(cli.register);
+//program
+  //.command('config')
+  //.description('Register options for later re-use')
+  //.option('-c --config <file>', 'Config file in which to save options')
+  //.option('-u --user <username>', 'Register github username')
+  //.option('-v --var <name>:[type]', 'Register a variable name with a given type', coercion.vars)
+  //.option('-t --template [key]:<owner>/<package>', 'Register a template', coercion.list, [])
+  //.option('-i --interpolate <value>', 'Register an underscore interpolate pattern', _.templateSettings.interpolate.source)
+  //.option('-e --evaluate <pattern>', 'Register an underscore evaluate pattern', _.templateSettings.evaluate.source)
+  //.option('-E --escape <pattern>', 'Register an underscore escape pattern', _.templateSettings.escape.source)
+  //.action(cli.register);
 
 program.parse(process.argv);

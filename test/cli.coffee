@@ -85,7 +85,6 @@ describe 'cli', ->
     Given -> stubAll @bash, ['copy', 'cleanup']
     Given -> stubAll @interpolation, ['find', 'iterate']
     Given -> @options =
-      description: 'code piece'
       user: 'quux:baz'
     Given -> @async.auto = sinon.stub()
 
@@ -103,10 +102,11 @@ describe 'cli', ->
         push: ['commit', 'push']
         cleanup: ['copy', 'cleanup']
       , sinon.match.func).callsArgWith 1, null
-      When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
+      When -> @subject.create 'horace-the-horrible', 'tinder-box', 'description', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
+      And -> expect(@options.description).to.equal 'description'
       And -> expect(@subject.exit).to.have.been.called
 
     context 'error', ->
@@ -124,13 +124,14 @@ describe 'cli', ->
         push: ['commit', 'push']
         cleanup: ['copy', 'cleanup']
       , sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
-      When -> @subject.create 'horace-the-horrible', 'tinder-box', @options
+      When -> @subject.create 'horace-the-horrible', 'tinder-box', 'description', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
       And -> expect(@options.user).to.equal 'quux'
       And -> expect(@options.pass).to.equal 'baz'
       And -> expect(@options.type).to.equal 'foo'
       And -> expect(@options.cwd).to.equal './horace-the-horrible'
+      And -> expect(@options.description).to.equal 'description'
       And -> expect(@subject.cleanup).to.have.been.calledWith 'Hark, an error occurreth!', @options
 
   xdescribe '.register', ->

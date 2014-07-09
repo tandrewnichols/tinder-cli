@@ -88,7 +88,7 @@ describe 'acceptance', ->
   When (done) ->
     emitters = [@clone, @copy, @remote, @add, @commit, @push]
     removed = []
-    @cli.create @repo, 'tinder-template', @options
+    @cli.create @repo, 'tinder-template', undefined, @options
     # Wait for process.exit to be called
     async.whilst (-> !process.exit.getCall(0)),
       ((cb) =>
