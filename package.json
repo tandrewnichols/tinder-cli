@@ -24,7 +24,7 @@
   "dependencies": {
     "async": "0.8.0",
     "colors": "0.6.x",
-    "commander": "git://github.com/tandrewnichols/commander.js.git#add-alias",
+    "commander": "~2.3.0",
     "config-extend": "0.0.6",
     "randomstring": "^1.0.3",
     "request": "2.34.x",
