@@ -22,14 +22,15 @@
     "watch": "mocha test -w -R min --suppress-stack"
   },
   "dependencies": {
-    "commander": "git://github.com/tandrewnichols/commander.js.git#add-alias",
-    "colors": "0.6.x",
-    "request": "2.34.x",
-    "varity": "1.0.x",
     "async": "0.8.0",
-    "underscore": "1.6.0",
+    "colors": "0.6.x",
+    "commander": "git://github.com/tandrewnichols/commander.js.git#add-alias",
     "config-extend": "0.0.6",
-    "tilde-expansion": "0.0.0"
+    "randomstring": "^1.0.3",
+    "request": "2.34.x",
+    "tilde-expansion": "0.0.0",
+    "underscore": "1.6.0",
+    "varity": "1.0.x"
   },
   "devDependencies": {
     "coffee-script": "1.7.1",

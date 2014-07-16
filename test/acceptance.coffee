@@ -28,11 +28,16 @@ describe 'acceptance', ->
     '@global': true
   Given -> @cp =
     '@global': true
+  Given -> @rand =
+    '@global': true
   Given -> @cli = sandbox '../lib/cli',
     request: @request
     child_process: @cp
+    randomstring: @rand
   Given -> @request.get = sinon.stub()
   Given -> @request.post = sinon.stub()
+  Given -> @rand.generate = sinon.stub()
+  Given -> @rand.generate.returns 'foobarbaz'
   Given -> sinon.stub process, 'exit'
   Given -> @request.get.withArgs('https://registry.npmjs.org/tinder-template/latest', sinon.match.func).callsArgWith 1, null,
     statusCode: 200
@@ -64,8 +69,8 @@ describe 'acceptance', ->
   Given -> @rm = new EventEmitter()
   Given -> sinon.stub @cp, 'spawn', (cmd, args, opts) =>
     switch "#{cmd} #{args.join(' ')}"
-      when "git clone git@github.com:tandrewnichols/tinder-template.git" then @clone
-      when "cp -Ri tinder-template/template #{@repo}" then @copy
+      when "git clone git@github.com:tandrewnichols/tinder-template.git foobarbaz" then @clone
+      when "cp -Ri ./foobarbaz/template #{@repo}" then @copy
       when "git remote set-url origin git@github.com:tandrewnichols/#{@repo}.git" then @remote
       when "git add ." then @add
       when "git commit -m Initial commit using tinder template tinder-template" then @commit

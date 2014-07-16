@@ -9,24 +9,21 @@ describe 'lib/bash', ->
     Given -> @cb = sinon.spy()
     Given -> @options =
       repoName: 'world'
+      tempDir: 'furby'
     Given -> @cp.spawn = sinon.stub()
-    Given -> @cp.spawn.withArgs('cp', ['-Ri', 'hello/template', 'world'],
+    Given -> @cp.spawn.withArgs('cp', ['-Ri', 'furby/template', 'world'],
       stdio: 'inherit'
     ).returns @copy
 
     context 'error', ->
-      When -> @subject.copy @options, @cb,
-        getGithubUrl: 'git@github.com:say/hello.git'
+      When -> @subject.copy @options, @cb, {}
       And -> @copy.emit('close', 1)
-      Then -> expect(@cb).to.have.been.calledWith 'cp -Ri hello/template world returned code 1'
-      And -> expect(@options.clonedDir).to.equal 'hello'
+      Then -> expect(@cb).to.have.been.calledWith 'cp -Ri furby/template world returned code 1'
 
     context 'no error', ->
-      When -> @subject.copy @options, @cb,
-        getGithubUrl: 'git@github.com:say/hello.git'
+      When -> @subject.copy @options, @cb, {}
       And -> @copy.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
-      And -> expect(@options.clonedDir).to.equal 'hello'
 
   describe '.cleanup', ->
     Given -> @rm = new EventEmitter()
@@ -36,12 +33,12 @@ describe 'lib/bash', ->
       stdio: 'inherit'
     ).returns @rm
     Given -> @options =
-      clonedDir: 'neverland'
+      tempDir: 'neverland'
 
     context 'error', ->
       When -> @subject.cleanup @options, @cb
       And -> @rm.emit('close', 1)
-      Then -> expect(@cb).to.have.been.calledWith 'Unable to delete temporary directory ./neverland'
+      Then -> expect(@cb).to.have.been.calledWith 'Unable to delete temporary directory neverland'
 
     context 'no error', ->
       When -> @subject.cleanup @options, @cb

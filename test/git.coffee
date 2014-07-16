@@ -3,9 +3,11 @@ EventEmitter = require('events').EventEmitter
 describe 'lib/git', ->
   Given -> @cp = {}
   Given -> @request = {}
+  Given -> @rand = {}
   Given -> @subject = sandbox '../lib/git',
     child_process: @cp
     request: @request
+    randomstring: @rand
   describe '.getGithubUrl', ->
     Given -> @cb = sinon.spy()
     context 'no template', ->
@@ -41,21 +43,26 @@ describe 'lib/git', ->
     Given -> @clone = new EventEmitter()
     Given -> @cb = sinon.spy()
     Given -> @cp.spawn = sinon.stub()
-    Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:foo/bar.git'],
+    Given -> @cp.spawn.withArgs('git', ['clone', 'git@github.com:foo/bar.git', 'blah'],
       stdio: 'inherit'
     ).returns @clone
+    Given -> @rand.generate = sinon.stub()
+    Given -> @rand.generate.returns 'blah'
+    Given -> @options = {}
 
     context 'error', ->
-      When -> @subject.clone {}, @cb,
+      When -> @subject.clone @options, @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       And -> @clone.emit('close', 1)
       Then -> expect(@cb).to.have.been.calledWith 'git clone git@github.com:foo/bar.git returned code 1'
+      And -> expect(@options.tempDir).to.equal './blah'
 
     context 'no error', ->
-      When -> @subject.clone {}, @cb,
+      When -> @subject.clone @options, @cb,
         getGithubUrl: 'git@github.com:foo/bar.git'
       And -> @clone.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
+      And -> expect(@options.tempDir).to.equal './blah'
 
   describe '.createRepo', ->
     Given -> @request.post = sinon.stub()
@@ -195,10 +202,11 @@ describe 'lib/git', ->
     Given -> @cp.spawn = sinon.stub()
     Given -> @cp.spawn.withArgs('git', ['remote', 'set-url', 'origin', 'git@github.com:tandrewnichols/bobloblaw'],
       stdio: 'inherit'
-      cwd: './bobloblaw'
+      cwd: './temp'
     ).returns @remote
     Given -> @options =
       cwd: './bobloblaw'
+      tempDir: './temp'
       repo:
         clone_url: 'git@github.com:tandrewnichols/bobloblaw'
 
