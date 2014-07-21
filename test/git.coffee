@@ -8,36 +8,41 @@ describe 'lib/git', ->
     child_process: @cp
     request: @request
     randomstring: @rand
+
   describe '.getGithubUrl', ->
     Given -> @cb = sinon.spy()
     context 'no template', ->
       Given -> @options = {}
       When -> @subject.getGithubUrl @options, @cb
-      Then -> expect(@cb).to.have.been.calledWith 'Unable to construct a github url. No template provided.', null
+      Then -> expect(@cb).to.have.been.calledWith 'Unable to construct a github url. No template provided.'
+
     context 'full url', ->
       Given -> @options =
         template: 'git@github.com:foo/bar.git'
       When -> @subject.getGithubUrl @options, @cb
-      Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
+      Then -> expect(@cb).to.have.been.calledWith null
+      And -> expect(@options.githubUrl).to.equal 'git@github.com:foo/bar.git'
 
     context 'user/repo', ->
       Given -> @options =
         template: 'foo/bar'
       When -> @subject.getGithubUrl @options, @cb
-      Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
+      Then -> expect(@cb).to.have.been.calledWith null
+      And -> expect(@options.githubUrl).to.equal 'git@github.com:foo/bar.git'
 
     context 'repo', ->
       Given -> @options =
         user: 'foo'
         template: 'bar'
       When -> @subject.getGithubUrl @options, @cb
-      Then -> expect(@cb).to.have.been.calledWith null, 'git@github.com:foo/bar.git'
+      Then -> expect(@cb).to.have.been.calledWith null
+      And -> expect(@options.githubUrl).to.equal 'git@github.com:foo/bar.git'
 
     context 'no user or template', ->
       Given -> @options =
         template: 'foo'
       When -> @subject.getGithubUrl @options, @cb
-      Then -> expect(@cb).to.have.been.calledWith 'Unable to construct a github url. The template was not in a known form and no github username was provided.', null
+      Then -> expect(@cb).to.have.been.calledWith 'Unable to construct a github url. The template was not in a known form and no github username was provided.'
 
   describe '.clone', ->
     Given -> @clone = new EventEmitter()
@@ -48,18 +53,17 @@ describe 'lib/git', ->
     ).returns @clone
     Given -> @rand.generate = sinon.stub()
     Given -> @rand.generate.returns 'blah'
-    Given -> @options = {}
+    Given -> @options =
+      githubUrl: 'git@github.com:foo/bar.git'
 
     context 'error', ->
-      When -> @subject.clone @options, @cb,
-        getGithubUrl: 'git@github.com:foo/bar.git'
+      When -> @subject.clone @options, @cb
       And -> @clone.emit('close', 1)
       Then -> expect(@cb).to.have.been.calledWith 'git clone git@github.com:foo/bar.git returned code 1'
       And -> expect(@options.tempDir).to.equal './blah'
 
     context 'no error', ->
-      When -> @subject.clone @options, @cb,
-        getGithubUrl: 'git@github.com:foo/bar.git'
+      When -> @subject.clone @options, @cb
       And -> @clone.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
       And -> expect(@options.tempDir).to.equal './blah'
@@ -117,7 +121,7 @@ describe 'lib/git', ->
         wiki: true
         issues: true
       When -> @subject.createRepo @options, @cb
-      Then -> expect(@cb).to.have.been.calledWith 'https://api.github.com/user/repos responded with status code 418', null
+      Then -> expect(@cb).to.have.been.calledWith 'https://api.github.com/user/repos responded with status code 418'
 
     context 'no error', ->
       context 'private, wiki, issues', ->
@@ -196,24 +200,44 @@ describe 'lib/git', ->
           that:
             github: 'returns'
 
+  describe '.init', ->
+    Given -> @init = new EventEmitter()
+    Given -> @cb = sinon.spy()
+    Given -> @cp.spawn = sinon.stub()
+    Given -> @cp.spawn.withArgs('git', ['init'],
+      stdio: 'inherit',
+      cwd: './banana'
+    ).returns @init
+    Given -> @options =
+      cwd: './banana'
+    
+    context 'error', ->
+      When -> @subject.init @options, @cb
+      And -> @init.emit 'close', 1
+      Then -> expect(@cb).to.have.been.calledWith 'git init returned code 1'
+
+    context 'success', ->
+      When -> @subject.init @options, @cb
+      And -> @init.emit 'close', 0
+      Then -> expect(@cb).to.have.been.called
+
   describe '.createRemote', ->
     Given -> @remote = new EventEmitter()
     Given -> @cb = sinon.spy()
     Given -> @cp.spawn = sinon.stub()
-    Given -> @cp.spawn.withArgs('git', ['remote', 'set-url', 'origin', 'git@github.com:tandrewnichols/bobloblaw'],
+    Given -> @cp.spawn.withArgs('git', ['remote', 'add', 'origin', 'git@github.com:tandrewnichols/bobloblaw'],
       stdio: 'inherit'
-      cwd: './temp'
+      cwd: './bobloblaw'
     ).returns @remote
     Given -> @options =
       cwd: './bobloblaw'
-      tempDir: './temp'
       repo:
         clone_url: 'git@github.com:tandrewnichols/bobloblaw'
 
     context 'error', ->
       When -> @subject.createRemote @options, @cb
       And -> @remote.emit('close', 1)
-      Then -> expect(@cb).to.have.been.calledWith 'git remote set-url origin git@github.com:tandrewnichols/bobloblaw returned code 1'
+      Then -> expect(@cb).to.have.been.calledWith 'git remote add origin git@github.com:tandrewnichols/bobloblaw returned code 1'
       
     context 'success', ->
       When -> @subject.createRemote @options, @cb

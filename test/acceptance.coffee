@@ -62,6 +62,7 @@ describe 'acceptance', ->
     clone_url: "git@github.com:tandrewnichols/#{@repo}.git"
   Given -> @clone = new EventEmitter()
   Given -> @copy = new EventEmitter()
+  Given -> @init = new EventEmitter()
   Given -> @remote = new EventEmitter()
   Given -> @add = new EventEmitter()
   Given -> @commit = new EventEmitter()
@@ -71,7 +72,8 @@ describe 'acceptance', ->
     switch "#{cmd} #{args.join(' ')}"
       when "git clone git@github.com:tandrewnichols/tinder-template.git foobarbaz" then @clone
       when "cp -Ri ./foobarbaz/template #{@repo}" then @copy
-      when "git remote set-url origin git@github.com:tandrewnichols/#{@repo}.git" then @remote
+      when "git init" then @init
+      when "git remote add origin git@github.com:tandrewnichols/#{@repo}.git" then @remote
       when "git add ." then @add
       when "git commit -m Initial commit using tinder template tinder-template" then @commit
       when "git push origin master" then @push
@@ -91,7 +93,7 @@ describe 'acceptance', ->
       foo: 'bar'
       baz: 'q,u,u,x'
   When (done) ->
-    emitters = [@clone, @copy, @remote, @add, @commit, @push]
+    emitters = [@clone, @copy, @remote, @add, @commit, @push, @init]
     removed = []
     @cli.create @repo, 'tinder-template', undefined, @options
     # Wait for process.exit to be called

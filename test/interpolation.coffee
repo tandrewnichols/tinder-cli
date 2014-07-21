@@ -24,7 +24,8 @@ describe 'lib/interpolation', ->
     When -> @subject.find @options, @cb
     And -> @grep.stdout.emit 'data', 'foo\nbar\nbaz'
     And -> @grep.emit 'close'
-    Then -> expect(@cb).to.have.been.calledWith null, ['foo', 'bar', 'baz']
+    Then -> expect(@cb).to.have.been.called
+    And -> expect(@options.files).to.deep.equal ['foo', 'bar', 'baz']
 
   describe '.iterate', ->
     Given -> stubAll @subject, ['read', 'replace', 'write']
@@ -33,19 +34,19 @@ describe 'lib/interpolation', ->
     Given -> @cb = (err) =>
       @async.each.getCall(0).args[2](err)
     Given -> @async.each.withArgs(['./foo', './bar'], sinon.match.func, sinon.match.func).callsArgWith 1, './foo', @cb
+    Given -> @options =
+      files: ['./foo', './bar']
 
     context 'error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, 'error'
-      When -> @subject.iterate {}, @next,
-        find: ['./foo', './bar']
+      When -> @subject.iterate @options, @next
       Then -> expect(@next).to.have.been.calledWith 'error'
 
     context 'no error', ->
       Given -> @async.waterfall = sinon.stub()
       Given -> @async.waterfall.withArgs([ 'read', 'replace', 'write' ], sinon.match.func).callsArgWith 1, null
-      When -> @subject.iterate {}, @next,
-        find: ['./foo', './bar']
+      When -> @subject.iterate @options, @next
       Then -> expect(@next).to.have.been.calledWith()
 
   describe '.read', ->

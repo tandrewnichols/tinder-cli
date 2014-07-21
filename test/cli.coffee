@@ -81,27 +81,28 @@ describe 'cli', ->
       @subject.exit.restore()
     Given -> sinon.stub @subject, 'cleanup'
     Given -> sinon.stub @subject, 'exit'
-    Given -> stubAll @git, ['getGithubUrl', 'clone', 'createRepo', 'createRemote', 'add', 'commit', 'push']
+    Given -> stubAll @git, ['getGithubUrl', 'clone', 'createRepo', 'init', 'createRemote', 'add', 'commit', 'push']
     Given -> stubAll @bash, ['copy', 'cleanup']
     Given -> stubAll @interpolation, ['find', 'iterate']
     Given -> @options =
       user: 'quux:baz'
-    Given -> @async.auto = sinon.stub()
+    Given -> @async.series = sinon.stub()
 
     context 'no error', ->
-      Given -> @async.auto.withArgs(
-        getGithubUrl: 'getGithubUrl'
-        clone: ['getGithubUrl', 'clone']
-        copy: ['clone', 'copy']
-        find: ['copy', 'find']
-        iterate: ['find', 'iterate']
-        createRepo: 'createRepo'
-        createRemote: ['copy', 'createRepo', 'createRemote']
-        add: ['iterate', 'createRemote', 'add']
-        commit: ['add', 'commit']
-        push: ['commit', 'push']
-        cleanup: ['copy', 'cleanup']
-      , sinon.match.func).callsArgWith 1, null
+      Given -> @async.series.withArgs([
+        'getGithubUrl'
+        'clone'
+        'copy'
+        'find'
+        'iterate'
+        'createRepo'
+        'init'
+        'createRemote'
+        'add'
+        'commit'
+        'push'
+        'cleanup'
+      ], sinon.match.func).callsArgWith 1, null
       When -> @subject.create 'horace-the-horrible', 'tinder-box', 'description', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
@@ -111,19 +112,20 @@ describe 'cli', ->
 
     context 'error', ->
       Given -> @options.vars = type: 'foo'
-      Given -> @async.auto.withArgs(
-        getGithubUrl: 'getGithubUrl'
-        clone: ['getGithubUrl', 'clone']
-        copy: ['clone', 'copy']
-        find: ['copy', 'find']
-        iterate: ['find', 'iterate']
-        createRepo: 'createRepo'
-        createRemote: ['copy', 'createRepo', 'createRemote']
-        add: ['iterate', 'createRemote', 'add']
-        commit: ['add', 'commit']
-        push: ['commit', 'push']
-        cleanup: ['copy', 'cleanup']
-      , sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
+      Given -> @async.series.withArgs([
+        'getGithubUrl'
+        'clone'
+        'copy'
+        'find'
+        'iterate'
+        'createRepo'
+        'init'
+        'createRemote'
+        'add'
+        'commit'
+        'push'
+        'cleanup'
+      ], sinon.match.func).callsArgWith 1, 'Hark, an error occurreth!'
       When -> @subject.create 'horace-the-horrible', 'tinder-box', 'description', @options
       Then -> expect(@options.repoName).to.equal 'horace-the-horrible'
       And -> expect(@options.template).to.equal 'tinder-box'
