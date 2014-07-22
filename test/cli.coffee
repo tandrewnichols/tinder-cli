@@ -20,8 +20,8 @@ describe 'cli', ->
     Given -> sinon.stub @subject, 'exit'
     Given -> @bash.rm =
       bind: sinon.stub()
-    Given -> @bash.rm.bind.withArgs('foo').returns 'rm foo'
-    Given -> @bash.rm.bind.withArgs('bar').returns 'rm bar'
+    Given -> @bash.rm.bind.withArgs(@bash, 'foo').returns 'rm foo'
+    Given -> @bash.rm.bind.withArgs(@bash, 'bar').returns 'rm bar'
 
     context 'clean', ->
       Given -> @cp.exec = sinon.stub()
@@ -39,7 +39,7 @@ describe 'cli', ->
       context 'no error', ->
         Given -> @async.parallel.withArgs([ 'rm foo', 'rm bar' ], sinon.match.func).callsArgWith 1, null
         When -> @subject.cleanup 'The last lights off the black west went', @options
-        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Removed foo and bar'
+        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Removed foo and temp dir'
 
     context 'no clean', ->
       Given -> @options =
@@ -47,7 +47,7 @@ describe 'cli', ->
         repoName: 'foo'
         tempDir: 'footemp'
       When -> @subject.cleanup 'I have measured out my life with coffee spoons', @options
-      Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Not removing foo and footemp'.red
+      Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Not removing foo and temp dir'.red
 
   describe '.exit', ->
     afterEach -> console.log.restore()
