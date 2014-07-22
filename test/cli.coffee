@@ -15,51 +15,39 @@ describe 'cli', ->
 
   describe '.cleanup', ->
     Given -> sinon.spy console, 'log'
-    afterEach ->
-      console.log.restore()
+    afterEach -> console.log.restore()
+    afterEach -> @subject.exit.restore()
+    Given -> sinon.stub @subject, 'exit'
+    Given -> @bash.rm =
+      bind: sinon.stub()
+    Given -> @bash.rm.bind.withArgs('foo').returns 'rm foo'
+    Given -> @bash.rm.bind.withArgs('bar').returns 'rm bar'
+
     context 'clean', ->
-      afterEach ->
-        @subject.exit.restore()
-      Given -> sinon.stub @subject, 'exit'
       Given -> @cp.exec = sinon.stub()
       Given -> @options =
         clean: true
         repoName: 'foo'
-      context 'err', ->
-        afterEach ->
-          process.chdir.restore()
-          process.cwd.restore()
-        Given -> sinon.stub process, 'chdir'
-        Given -> sinon.stub(process, 'cwd').returns '/blah/blah/foo'
-        Given -> @cp.exec.withArgs('rm -rf foo', sinon.match.func).callsArgWith 1, 'err', null, null
+        tempDir: 'bar'
+      Given -> @async.parallel = sinon.stub()
+        
+      context 'error', ->
+        Given -> @async.parallel.withArgs([ 'rm foo', 'rm bar' ], sinon.match.func).callsArgWith 1, 'an error'
         When -> @subject.cleanup 'How much wood could a wood chuck chuck?', @options
-        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'err'
-
-      context 'stderr', ->
-        afterEach ->
-          process.cwd.restore()
-        Given -> sinon.stub(process, 'cwd').returns '/blah/blah/blah'
-        Given -> @cp.exec.callsArgWith 1, null, null, 'stderr'
-        When -> @subject.cleanup 'She sells sea shells', @options
-        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'stderr'
+        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'an error'
 
       context 'no error', ->
-        afterEach ->
-          process.cwd.restore()
-        Given -> sinon.stub(process, 'cwd').returns '/blah/blah/blah'
-        Given -> @cp.exec.callsArgWith 1, null, 'stdout', null
+        Given -> @async.parallel.withArgs([ 'rm foo', 'rm bar' ], sinon.match.func).callsArgWith 1, null
         When -> @subject.cleanup 'The last lights off the black west went', @options
-        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Removed foo'
+        Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Removed foo and bar'
 
     context 'no clean', ->
-      afterEach ->
-        @subject.exit.restore()
-      Given -> sinon.stub @subject, 'exit'
       Given -> @options =
         clean: false
         repoName: 'foo'
+        tempDir: 'footemp'
       When -> @subject.cleanup 'I have measured out my life with coffee spoons', @options
-      Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Not removing ./foo'.red
+      Then -> expect(@subject.exit).to.have.been.calledWith 1, 'Not removing foo and footemp'.red
 
   describe '.exit', ->
     afterEach -> console.log.restore()

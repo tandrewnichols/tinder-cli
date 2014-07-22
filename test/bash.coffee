@@ -26,21 +26,26 @@ describe 'lib/bash', ->
       Then -> expect(@cb).to.have.been.called
 
   describe '.cleanup', ->
+    afterEach -> @subject.rm.restore()
+    Given -> sinon.stub @subject, 'rm'
+    Given -> @next = sinon.stub()
+    When -> @subject.cleanup { tempDir: 'banana' }, @next
+    Then -> expect(@subject.rm).to.have.been.calledWith 'banana', @next
+
+  describe '.rm', ->
     Given -> @rm = new EventEmitter()
     Given -> @cb = sinon.spy()
     Given -> @cp.spawn = sinon.stub()
     Given -> @cp.spawn.withArgs('rm', ['-rf', 'neverland'],
       stdio: 'inherit'
     ).returns @rm
-    Given -> @options =
-      tempDir: 'neverland'
 
     context 'error', ->
-      When -> @subject.cleanup @options, @cb
+      When -> @subject.rm 'neverland', @cb
       And -> @rm.emit('close', 1)
-      Then -> expect(@cb).to.have.been.calledWith 'Unable to delete temporary directory neverland'
+      Then -> expect(@cb).to.have.been.calledWith 'rm -rf neverland returned code 1'
 
     context 'no error', ->
-      When -> @subject.cleanup @options, @cb
+      When -> @subject.rm 'neverland', @cb
       And -> @rm.emit('close', 0)
       Then -> expect(@cb).to.have.been.called
