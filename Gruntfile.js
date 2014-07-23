@@ -1,7 +1,7 @@
 var taskMaster = require('task-master');
 
 module.exports = function(grunt) {
-  grunt.initConfig(taskMaster(grunt));
+  taskMaster(grunt);
 
-  //grunt.registerTask('default', ['spec']);
+  grunt.registerTask('default', ['test']);
 };

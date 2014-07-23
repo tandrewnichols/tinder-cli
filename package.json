@@ -42,7 +42,7 @@
     "mocha-given": "~0.1.2",
     "proxyquire": "1.0.0",
     "sinon": "1.7.3",
-    "task-master": "0.0.1",
+    "task-master": "1.0.2",
     "wordgenerator": "0.0.1"
   },
   "keywords": [
