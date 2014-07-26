@@ -59,10 +59,12 @@ Options:
 
 Imagine a template (let's call it Steve) with this directory structure:
 
+```
 README.md
 template
   README.md
   package.json
+```
 
 When you run tinder using this template, your new repository will have a README.md and a package.json (the contents of the template directory).
 
