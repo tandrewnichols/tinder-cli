@@ -1,12 +1,14 @@
-[![Build Status](https://travis-ci.org/tandrewnichols/tinder.png)](https://travis-ci.org/tandrewnichols/tinder) [![downloads](http://img.shields.io/npm/dm/tinder.svg)](https://npmjs.org/package/tinder) [![npm](http://img.shields.io/npm/v/tinder.svg)](https://npmjs.org/package/tinder)
+[![Build Status](https://travis-ci.org/tandrewnichols/tinder-cli.png)](https://travis-ci.org/tandrewnichols/tinder-cli) [![downloads](http://img.shields.io/npm/dm/tinder-cli.svg)](https://npmjs.org/package/tinder-cli) [![npm](http://img.shields.io/npm/v/tinder-cli.svg)](https://npmjs.org/package/tinder-cli)
 
 # Tinder
 
-A command line tool for quickly creating node.js repositories from an existing template.
+A command line tool for quickly creating a node.js repository from an existing template.
+
+**NOTE: THIS IS _NOT_ RELATED TO THE TINDER DATING SERVICE**
 
 ## Installation
 
-`npm install tinder -g`
+`npm install tinder-cli -g`
 
 ## What is this thing?
 
