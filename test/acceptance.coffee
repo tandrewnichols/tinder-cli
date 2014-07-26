@@ -108,12 +108,6 @@ describe 'acceptance', ->
           ), cb
         ), 200
       ),done
-  And -> @clone.emit('close', 0)
-  And -> @copy.emit('close', 0)
-  And -> @remote.emit('close', 0)
-  And -> @add.emit('close', 0)
-  And -> @commit.emit('close', 0)
-  And -> @push.emit('close', 0)
   And -> @blah = require "../#{@repo}/blah"
   Then ->
     expect(@blah.repoName).to.equal "This repo is called #{@repo}"
