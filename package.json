@@ -34,11 +34,15 @@
   },
   "devDependencies": {
     "coffee-script": "1.7.1",
+    "grunt": "^0.4.5",
+    "grunt-env": "^0.4.1",
+    "grunt-release": "^0.7.0",
+    "indeed": "1.0.5",
     "mocha": "git://github.com/tandrewnichols/mocha.git#suppress-stack",
+    "mocha-given": "~0.1.2",
     "proxyquire": "1.0.0",
     "sinon": "1.7.3",
-    "mocha-given": "~0.1.2",
-    "indeed": "1.0.5",
+    "task-master": "1.0.2",
     "wordgenerator": "0.0.1"
   },
   "keywords": [
