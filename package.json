@@ -1,6 +1,6 @@
 {
-  "name": "tinder",
-  "description": "Command line tool for sparking up new modules and apps",
+  "name": "tinder.io",
+  "description": "A command line tool for quickly creating a node.js repository from an existing template.",
   "version": "0.0.1",
   "author": "Andrew Nichols <tandrewnichols@gmail.com>",
   "repository": {
